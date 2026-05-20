@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Мэрия | Система управления</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #f0f2f8; padding-bottom: 30px; }
+        .navbar-custom { background: white; border-radius: 20px; padding: 12px 24px; margin-bottom: 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); transition: 0.2s; }
+        .stat-card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 4px solid #2c7da0; transition: 0.2s; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+        .stat-number { font-size: 2.2rem; font-weight: 700; color: #2c7da0; }
+        .sidebar-card { background: white; border-radius: 20px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .nav-pills .nav-link { border-radius: 12px; margin-bottom: 6px; color: #1e2a3e; font-weight: 500; padding: 10px 16px; transition: 0.2s; }
+        .nav-pills .nav-link i { margin-right: 12px; width: 24px; font-size: 1.1rem; }
+        .nav-pills .nav-link.active { background: #2c7da0; color: white; }
+        .nav-pills .nav-link.active i { color: white; }
+        .nav-pills .nav-link:hover:not(.active) { background: #e9ecef; transform: translateX(4px); }
+        .content-card { background: white; border-radius: 24px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); min-height: 500px; }
+        .btn-custom { background: #2c7da0; border: none; border-radius: 30px; padding: 6px 20px; font-weight: 500; color: white; transition: 0.2s; }
+        .btn-custom:hover { background: #1f5e7c; transform: scale(1.02); }
+        .btn-outline-custom { border-radius: 30px; border: 1px solid #2c7da0; color: #2c7da0; padding: 4px 16px; font-size: 0.85rem; transition: 0.2s; }
+        .btn-outline-custom:hover { background: #2c7da0; color: white; transform: scale(1.02); }
+        .status-badge { padding: 4px 12px; border-radius: 30px; font-size: 0.7rem; font-weight: 600; display: inline-block; }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-approved { background: #d4edda; color: #155724; }
+        .status-rejected { background: #f8d7da; color: #721c24; }
+        .status-hearing { background: #cce5ff; color: #004085; }
+        .subnav { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; border-bottom: 1px solid #e9ecef; padding-bottom: 12px; }
+        .subnav-btn { background: none; border: none; padding: 6px 16px; border-radius: 30px; font-weight: 500; color: #6c757d; transition: 0.2s; }
+        .subnav-btn.active { background: #e9ecef; color: #2c7da0; }
+        .subnav-btn:hover { background: #f8f9fa; color: #2c7da0; transform: translateY(-1px); }
+        .table-custom { font-size: 0.85rem; }
+        .table-custom th { background: #f8f9fa; font-weight: 600; border-bottom: 2px solid #dee2e6; }
+        .table-custom td { vertical-align: middle; }
+        .table-custom tbody tr { cursor: pointer; transition: 0.15s; }
+        .table-custom tbody tr:hover { background-color: #f8f9fa; transform: scale(1.002); box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+        .id-card-badge { background: #e9ecef; padding: 2px 8px; border-radius: 20px; font-family: monospace; font-size: 0.7rem; }
+        .custom-tooltip {
+            position: fixed;
+            background: white;
+            border: 1px solid #ced4da;
+            border-radius: 12px;
+            padding: 12px;
+            max-width: 320px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 10000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            font-size: 0.8rem;
+            pointer-events: none;
+            background-color: #fff;
+            color: #212529;
+        }
+        .custom-tooltip img { max-width: 100%; max-height: 100px; object-fit: contain; margin-top: 6px; border-radius: 8px; }
+        .custom-tooltip::-webkit-scrollbar { width: 6px; }
+        .custom-tooltip::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .custom-tooltip::-webkit-scrollbar-thumb { background: #2c7da0; border-radius: 10px; }
+        .img-thumb-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+        .img-thumb-list img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; cursor: pointer; }
+        .role-badge { background: #e2e3e5; color: #383d41; padding: 4px 8px; border-radius: 20px; font-size: 0.7rem; margin-left: 8px; }
+        .clickable-name { cursor: pointer; transition: 0.2s; }
+        .clickable-name:hover { text-decoration: underline; opacity: 0.8; }
+    </style>
+</head>
+<body>
+
+<div class="container py-3" id="app">
+    <div class="navbar-custom d-flex justify-content-between align-items-center flex-wrap">
+        <div>
+            <h3 class="fw-bold mb-0" style="color: #1f5068;"><i class="bi bi-building me-2"></i>Управление Мэрией</h3>
+            <p class="text-secondary small mb-0 mt-1">ID Карта • Статусы • Документы • Изображения</p>
+        </div>
+        <div id="authWidget" class="d-flex gap-2 align-items-center"></div>
+    </div>
+
+    <div id="mainApp" style="display: none;">
+        <div class="row g-4">
+            <div class="col-lg-3">
+                <div class="sidebar-card">
+                    <div class="nav flex-column nav-pills" id="mainNav"></div>
+                    <div class="mt-3 small text-muted ps-2"><i class="bi bi-info-circle"></i> Доступ определяется ролью</div>
+                </div>
+            </div>
+            <div class="col-lg-9">
+                <div class="content-card">
+                    <div id="dynamicContent">Загрузка...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модалки -->
+<div class="modal fade" id="profileModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-light"><h5 class="modal-title">Профиль сотрудника</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="mb-3"><label>Отображаемое имя (ФИО)</label><input type="text" class="form-control" id="profileDisplayName" placeholder="Имя сотрудника"></div><div class="mb-3"><label>Роль</label><input type="text" class="form-control" id="profileRole" disabled></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button><button type="button" class="btn btn-custom" id="saveProfileBtn">Сохранить</button></div></div></div></div>
+<div class="modal fade" id="usersModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header bg-light"><h5 class="modal-title">Управление сотрудниками</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="usersModalBody"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button></div></div></div></div>
+<div class="modal fade" id="entryModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header bg-light"><h5 class="modal-title" id="modalTitle">Создать запись</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="modalBodyForm"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button><button type="button" class="btn btn-custom" id="saveEntryBtn">Сохранить</button></div></div></div></div>
+<div class="modal fade" id="detailModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header bg-light"><h5 class="modal-title">Детальная информация</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="detailModalBody"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button></div></div></div></div>
+<div class="modal fade" id="loginRegisterModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="loginModalTitle">Вход</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div id="loginForm"><div class="mb-3"><label>Логин</label><input type="text" class="form-control" id="loginUsername" placeholder="myusername"></div><div class="mb-3"><label>Пароль</label><input type="password" class="form-control" id="loginPassword"></div><button class="btn btn-custom w-100" id="doLoginBtn">Войти</button><hr><button class="btn btn-link w-100" id="switchToRegisterBtn">Нет аккаунта? Зарегистрироваться</button></div><div id="registerForm" style="display:none;"><div class="mb-3"><label>Логин</label><input type="text" class="form-control" id="regUsername" placeholder="myusername"></div><div class="mb-3"><label>Пароль (мин 6 символов)</label><input type="password" class="form-control" id="regPassword"></div><button class="btn btn-success w-100" id="doRegisterBtn">Зарегистрироваться</button><hr><button class="btn btn-link w-100" id="switchToLoginBtn">Уже есть аккаунт? Войти</button></div></div></div></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, collection, doc, getDocs, addDoc, updateDoc, deleteDoc, onSnapshot, getDoc, setDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDjlK77pKltiTvnAzBDtsfT_Rbm3Kp78nc",
+        authDomain: "cityhall-crm.firebaseapp.com",
+        projectId: "cityhall-crm",
+        storageBucket: "cityhall-crm.firebasestorage.app",
+        messagingSenderId: "923540945970",
+        appId: "1:923540945970:web:94a261906bbdd7bb89102b"
+    };
+    const IMGBB_API_KEY = "25735af97184f11282481b113825789a";
+
+    let app, auth, db;
+    try {
+        app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        db = getFirestore(app);
+    } catch(e) { console.error("Firebase init error", e); }
+
+    let currentUser = null, currentUserRole = "user", currentUserDisplayName = "";
+    let currentMain = "dashboard", currentSub = null;
+
+    async function uploadImageToImgbb(file) {
+        if (!IMGBB_API_KEY) { alert("Укажите API ключ imgbb"); return null; }
+        const formData = new FormData();
+        formData.append("image", file);
+        try {
+            const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: formData });
+            const data = await res.json();
+            return data.success ? data.data.url : null;
+        } catch(e) { alert("Ошибка загрузки"); return null; }
+    }
+
+    async function fetchUserData(uid) {
+        const userDoc = await getDoc(doc(db, "users", uid));
+        if (userDoc.exists()) {
+            return { role: userDoc.data().role || "user", displayName: userDoc.data().displayName || userDoc.data().login || "" };
+        }
+        await setDoc(doc(db, "users", uid), { login: "unknown", role: "user", displayName: "" });
+        return { role: "user", displayName: "" };
+    }
+
+    async function updateUserDisplayName(uid, newName) {
+        await updateDoc(doc(db, "users", uid), { displayName: newName });
+        if (uid === currentUser.uid) currentUserDisplayName = newName;
+        renderAuthButtons();
+    }
+
+    async function updateUserRole(uid, newRole) {
+        await updateDoc(doc(db, "users", uid), { role: newRole });
+    }
+
+    function isDeputyMayor() { return currentUserRole === "deputy_mayor"; }
+    function isAssistant() { return currentUserRole === "assistant"; }
+    function isEconomist() { return currentUserRole === "economist"; }
+    function isLawyer() { return currentUserRole === "lawyer"; }
+    function isSecurity() { return currentUserRole === "security"; }
+    function canManageUsers() { return isDeputyMayor() || isAssistant(); }
+    function canEditAll() { return isDeputyMayor() || isAssistant(); }
+    function canEditEconomy() { return isEconomist() || canEditAll(); }
+    function canEditLegal() { return isLawyer() || canEditAll(); }
+    function canEditSecurity() { return isSecurity() || canEditAll(); }
+    function canViewLegal() { return true; } // все видят постановления/законы
+    function canViewEconomy() { return isEconomist() || canEditAll() || isLawyer() || isSecurity(); } // юрист и охрана только просмотр
+    function canViewSecurity() { return isSecurity() || canEditAll(); }
+
+    async function registerWithLogin(login, password) {
+        if (!login || password.length < 6) { alert("Логин не пустой, пароль ≥6 символов"); return false; }
+        const email = `${login}@auth.local`;
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            await setDoc(doc(db, "users", userCredential.user.uid), { login: login, emailAlias: email, role: "user", displayName: login });
+            alert("Регистрация успешна! Войдите.");
+            return true;
+        } catch (error) {
+            alert(error.code === 'auth/email-already-in-use' ? "Логин занят" : "Ошибка: " + error.message);
+            return false;
+        }
+    }
+    async function loginWithLogin(login, password) {
+        if (!login || !password) { alert("Введите логин и пароль"); return false; }
+        try {
+            await signInWithEmailAndPassword(auth, `${login}@auth.local`, password);
+            return true;
+        } catch (err) { alert("Неверный логин или пароль"); return false; }
+    }
+
+    // ------------------ ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ ТУЛТИПОВ И ТАБЛИЦ ------------------
+    let activeTooltip = null;
+    function showTooltip(event, text, imageUrl) {
+        if (activeTooltip) activeTooltip.remove();
+        const tooltip = document.createElement('div');
+        tooltip.className = 'custom-tooltip';
+        let content = text ? text.substring(0, 200) : '';
+        if (text && text.length > 200) content += '...';
+        tooltip.innerHTML = `<div><strong>📄 Описание:</strong><br>${content.replace(/\n/g, '<br>')}</div>`;
+        if (imageUrl) tooltip.innerHTML += `<div><img src="${imageUrl}" style="max-width:100%; max-height:100px; margin-top:8px;"></div>`;
+        document.body.appendChild(tooltip);
+        let left = event.clientX + 15;
+        let top = event.clientY + 15;
+        if (left + tooltip.offsetWidth > window.innerWidth) left = event.clientX - tooltip.offsetWidth - 15;
+        if (top + tooltip.offsetHeight > window.innerHeight) top = event.clientY - tooltip.offsetHeight - 15;
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = top + 'px';
+        activeTooltip = tooltip;
+    }
+    function hideTooltip() { if (activeTooltip) { activeTooltip.remove(); activeTooltip = null; } }
+
+    function showDetailModal(data) {
+        let html = `<div><strong>📌 Полное описание:</strong><br><div style="max-height:200px; overflow-y:auto; white-space:pre-wrap;">${data.description || 'Нет описания'}</div></div>`;
+        if (data.images && data.images.length) {
+            html += `<hr><strong>🖼️ Изображения:</strong><div class="img-thumb-list">${data.images.map(img => `<a href="${img}" target="_blank"><img src="${img}" width="80"></a>`).join('')}</div>`;
+        }
+        if (data.documents && data.documents.length) {
+            html += `<hr><strong>📎 Связанные документы:</strong><ul>${data.documents.map(d => `<li><a href="${d}" target="_blank">${d}</a></li>`).join('')}</ul>`;
+        }
+        if (data.photo) html += `<hr><strong>👤 Фото:</strong><div><img src="${data.photo}" width="120" style="border-radius:12px;"></div>`;
+        document.getElementById("detailModalBody").innerHTML = html;
+        new bootstrap.Modal(document.getElementById("detailModal")).show();
+    }
+
+    function attachTableEvents(containerId, collectionName, canEdit) {
+        document.querySelectorAll(`#${containerId} tbody tr`).forEach(tr => {
+            tr.addEventListener("click", async (e) => {
+                if (e.target.classList.contains('editBtn') || e.target.classList.contains('deleteBtn')) return;
+                const id = tr.dataset.id;
+                const colName = tr.dataset.collection;
+                const snapDetail = await getDoc(doc(db, colName, id));
+                if (snapDetail.exists()) showDetailModal(snapDetail.data());
+            });
+            tr.addEventListener("mouseenter", async (e) => {
+                const id = tr.dataset.id;
+                const colName = tr.dataset.collection;
+                const snapDetail = await getDoc(doc(db, colName, id));
+                if (snapDetail.exists()) {
+                    const d = snapDetail.data();
+                    const firstImg = (d.images && d.images[0]) || d.photo || "";
+                    showTooltip(e, d.description || "", firstImg);
+                }
+            });
+            tr.addEventListener("mouseleave", hideTooltip);
+        });
+        if (canEdit) {
+            document.querySelectorAll(`#${containerId} .editBtn`).forEach(btn => btn.addEventListener("click", (e) => { e.stopPropagation(); openEditModal(btn.dataset.collection, btn.dataset.id, btn.dataset.type); }));
+            document.querySelectorAll(`#${containerId} .deleteBtn`).forEach(btn => btn.addEventListener("click", async (e) => { e.stopPropagation(); if(confirm("Удалить?")) await deleteDoc(doc(db, btn.dataset.collection, btn.dataset.id)); }));
+        } else {
+            document.querySelectorAll(`#${containerId} .editBtn, #${containerId} .deleteBtn`).forEach(btn => btn.remove());
+        }
+    }
+
+    // ================== РЕНДЕР РАЗДЕЛОВ ==================
+    async function renderDashboard() {
+        const collections = {
+            contracts: "economy_contracts", businesses: "economy_businesses", taxes: "economy_taxes",
+            budget: "economy_budget", amnesty: "legal_amnesty", laws: "legal_laws",
+            decrees: "legal_decrees", employed: "hr_employed", candidates: "hr_candidates", security_rules: "security_rules"
+        };
+        let stats = {};
+        for (let [key, col] of Object.entries(collections)) {
+            const snap = await getDocs(collection(db, col));
+            stats[key] = snap.size;
+        }
+        const budgetSnap = await getDocs(collection(db, "economy_budget"));
+        let income = 0, expense = 0;
+        budgetSnap.forEach(doc => {
+            const data = doc.data();
+            if (data.type === "income") income += Number(data.amount) || 0;
+            if (data.type === "expense") expense += Number(data.amount) || 0;
+        });
+        const html = `
+            <h4 class="mb-4"><i class="bi bi-speedometer2 me-2"></i>Статистика Мэрии</h4>
+            <div class="row g-3 mb-4">
+                <div class="col-md-4"><div class="stat-card"><div class="stat-number">${stats.contracts}</div><div>Договоров</div></div></div>
+                <div class="col-md-4"><div class="stat-card"><div class="stat-number">${stats.businesses}</div><div>Бизнесов</div></div></div>
+                <div class="col-md-4"><div class="stat-card"><div class="stat-number">${stats.taxes}</div><div>Налогов</div></div></div>
+                <div class="col-md-4"><div class="stat-card"><div class="stat-number">${stats.employed}</div><div>Трудоустроенных</div></div></div>
+                <div class="col-md-4"><div class="stat-card"><div class="stat-number">${stats.candidates}</div><div>Кандидатов</div></div></div>
+                <div class="col-md-4"><div class="stat-card"><div class="stat-number">${stats.amnesty}</div><div>Дел амнистии</div></div></div>
+            </div>
+            <div class="row">
+                <div class="col-md-6"><div class="stat-card"><div class="stat-number">${income.toLocaleString()} ₽</div><div>Доходы бюджета</div></div></div>
+                <div class="col-md-6"><div class="stat-card"><div class="stat-number">${expense.toLocaleString()} ₽</div><div>Расходы бюджета</div></div></div>
+            </div>
+        `;
+        document.getElementById("dynamicContent").innerHTML = html;
+    }
+
+    async function renderEconomy(sub) {
+        const subTitles = { contracts: "Договоры", businesses: "Бизнесы", taxes: "Налоги", budget: "Бюджет" };
+        const collections = { contracts: "economy_contracts", businesses: "economy_businesses", taxes: "economy_taxes", budget: "economy_budget" };
+        const colRef = collection(db, collections[sub]);
+        let html = `<div class="subnav">${Object.keys(subTitles).map(s => `<button class="subnav-btn ${currentSub === s ? 'active' : ''}" data-sub="${s}">${subTitles[s]}</button>`).join('')}</div>`;
+        html += `<div class="d-flex justify-content-between align-items-center mb-3"><h5>${subTitles[sub]}</h5>${canEditEconomy() ? '<button class="btn btn-custom btn-sm" id="createNewBtn">+ Добавить</button>' : ''}</div><div id="recordsList">Загрузка...</div>`;
+        document.getElementById("dynamicContent").innerHTML = html;
+        document.querySelectorAll(".subnav-btn").forEach(btn => btn.addEventListener("click", () => { currentSub = btn.dataset.sub; renderEconomy(currentSub); }));
+        onSnapshot(query(colRef, orderBy("createdAt", "desc")), (snapshot) => {
+            const recordsDiv = document.getElementById("recordsList");
+            if (!recordsDiv) return;
+            if (snapshot.empty) { recordsDiv.innerHTML = "<div class='alert alert-light'>Нет записей</div>"; return; }
+            let table = `<table class="table table-custom table-hover"><thead>`;
+            if (sub === "contracts") table += `<th>Название договора</th><th>Контрагент</th><th>Сумма</th><th>Действия</th>`;
+            else if (sub === "businesses") table += `<th>Название бизнеса</th><th>Директор</th><th>ID Карта</th><th>Почта</th><th>Действия</th>`;
+            else if (sub === "taxes") table += `<th>Тип налога</th><th>Категория</th><th>Ставка</th><th>Действия</th>`;
+            else table += `<th>Тип</th><th>Сумма</th><th>Назначение</th><th>Дата</th><th>Действия</th>`;
+            table += `</thead><tbody>`;
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                const id = docSnap.id;
+                table += `<tr data-id="${id}" data-collection="${collections[sub]}" data-type="${sub}">`;
+                if (sub === "contracts") table += `<td>${data.name || ""}</td><td>${data.partner || ""}</td><td>${data.amount || ""} ₽</td>`;
+                else if (sub === "businesses") table += `<td>${data.businessName || ""}</td><td>${data.director || ""}</td><td><span class="id-card-badge">${data.idCard || ""}</span></td><td>${data.emailId || ""}</td>`;
+                else if (sub === "taxes") table += `<td>${data.taxType || ""}</td><td>${data.category || ""}</td><td>${data.rate || ""}%</td>`;
+                else table += `<td><span class="badge ${data.type === 'income' ? 'bg-success' : 'bg-danger'}">${data.type === 'income' ? 'Приход' : 'Расход'}</span></td><td>${data.amount || 0} ₽</td><td>${data.purpose || ""}</td><td>${data.createdAt?.toDate ? new Date(data.createdAt.toDate()).toLocaleDateString() : ""}</td>`;
+                table += `<td>${canEditEconomy() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${id}" data-collection="${collections[sub]}" data-type="${sub}"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${id}" data-collection="${collections[sub]}"><i class="bi bi-trash"></i></button>` : '—'}</td></tr>`;
+            });
+            table += `</tbody></table>`;
+            recordsDiv.innerHTML = table;
+            attachTableEvents("recordsList", collections[sub], canEditEconomy());
+        });
+        if (canEditEconomy()) document.getElementById("createNewBtn")?.addEventListener("click", () => openCreateModal(collections[sub], sub));
+    }
+
+    async function renderLegal(sub) {
+        const subTitles = { amnesty: "Амнистия", laws: "Законы", decrees: "Постановления и указы" };
+        const collections = { amnesty: "legal_amnesty", laws: "legal_laws", decrees: "legal_decrees" };
+        const colRef = collection(db, collections[sub]);
+        let html = `<div class="subnav">${Object.keys(subTitles).map(s => `<button class="subnav-btn ${currentSub === s ? 'active' : ''}" data-sub="${s}">${subTitles[s]}</button>`).join('')}</div>`;
+        html += `<div class="d-flex justify-content-between align-items-center mb-3"><h5>${subTitles[sub]}</h5>${canEditLegal() ? '<button class="btn btn-custom btn-sm" id="createNewBtn">+ Добавить</button>' : ''}</div><div id="recordsList">Загрузка...</div>`;
+        document.getElementById("dynamicContent").innerHTML = html;
+        document.querySelectorAll(".subnav-btn").forEach(btn => btn.addEventListener("click", () => { currentSub = btn.dataset.sub; renderLegal(currentSub); }));
+        onSnapshot(query(colRef, orderBy("createdAt", "desc")), (snapshot) => {
+            const recordsDiv = document.getElementById("recordsList");
+            if (!recordsDiv) return;
+            if (snapshot.empty) { recordsDiv.innerHTML = "<div class='alert alert-light'>Нет записей</div>"; return; }
+            let table = `<table class="table table-custom table-hover"><thead><th>Название</th><th>Описание</th>${sub === "amnesty" ? '<th>Статус</th>' : ''}<th>Действия</th></thead><tbody>`;
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                const id = docSnap.id;
+                let statusHtml = "";
+                if (sub === "amnesty") {
+                    const statuses = { "check": "Проверка", "hearing": "Ожидает слушания", "rejected": "Отказано", "approved": "Одобрено" };
+                    let statusClass = data.status === "approved" ? "approved" : data.status === "rejected" ? "rejected" : data.status === "hearing" ? "hearing" : "pending";
+                    statusHtml = `<td><span class="status-badge status-${statusClass}">${statuses[data.status] || "Проверка"}</span></td>`;
+                }
+                table += `<tr data-id="${id}" data-collection="${collections[sub]}" data-type="${sub}">
+                            <td>${data.title || ""}</td>
+                            <td>${(data.description || "").substring(0, 50)}...${statusHtml}
+                             <td>${canEditLegal() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${id}" data-collection="${collections[sub]}" data-type="${sub}"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${id}" data-collection="${collections[sub]}"><i class="bi bi-trash"></i></button>` : '—'}</td>
+                          </tr>`;
+            });
+            table += `</tbody></table>`;
+            recordsDiv.innerHTML = table;
+            attachTableEvents("recordsList", collections[sub], canEditLegal());
+        });
+        if (canEditLegal()) document.getElementById("createNewBtn")?.addEventListener("click", () => openCreateModal(collections[sub], sub));
+    }
+
+    async function renderHR(sub) {
+        if (!canEditAll()) { document.getElementById("dynamicContent").innerHTML = "<div class='alert alert-warning'>Доступ запрещён</div>"; return; }
+        const subTitles = { employed: "Трудоустроенные", candidates: "Потенциальные" };
+        const collections = { employed: "hr_employed", candidates: "hr_candidates" };
+        const colRef = collection(db, collections[sub]);
+        let html = `<div class="subnav">${Object.keys(subTitles).map(s => `<button class="subnav-btn ${currentSub === s ? 'active' : ''}" data-sub="${s}">${subTitles[s]}</button>`).join('')}</div>`;
+        html += `<div class="d-flex justify-content-between align-items-center mb-3"><h5>${subTitles[sub]}</h5><button class="btn btn-custom btn-sm" id="createNewBtn">+ Добавить</button></div><div id="recordsList">Загрузка...</div>`;
+        document.getElementById("dynamicContent").innerHTML = html;
+        document.querySelectorAll(".subnav-btn").forEach(btn => btn.addEventListener("click", () => { currentSub = btn.dataset.sub; renderHR(currentSub); }));
+        onSnapshot(query(colRef, orderBy("createdAt", "desc")), (snapshot) => {
+            const recordsDiv = document.getElementById("recordsList");
+            if (!recordsDiv) return;
+            if (snapshot.empty) { recordsDiv.innerHTML = "<div class='alert alert-light'>Нет записей</div>"; return; }
+            let table = `<table class="table table-custom table-hover"><thead><th>ФИО</th><th>ID Карта</th><th>Должность</th><th>Статус</th><th>Действия</th></thead><tbody>`;
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                const id = docSnap.id;
+                const statuses = { "pending": "На проверке", "approved": "Принят", "rejected": "Отказ" };
+                let statusClass = data.status === "approved" ? "approved" : data.status === "rejected" ? "rejected" : "pending";
+                table += `<tr data-id="${id}" data-collection="${collections[sub]}" data-type="${sub}">
+                            <td>${data.fio || ""}</td>
+                            <td><span class="id-card-badge">${data.idCard || ""}</span></td>
+                            <td>${data.position || ""}</td>
+                            <td><span class="status-badge status-${statusClass}">${statuses[data.status] || "На проверке"}</span></td>
+                             <td><button class="btn btn-sm btn-outline-custom editBtn" data-id="${id}" data-collection="${collections[sub]}" data-type="${sub}"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${id}" data-collection="${collections[sub]}"><i class="bi bi-trash"></i></button></td>
+                          </tr>`;
+            });
+            table += `</tbody></table>`;
+            recordsDiv.innerHTML = table;
+            attachTableEvents("recordsList", collections[sub], true);
+        });
+        document.getElementById("createNewBtn")?.addEventListener("click", () => openCreateModal(collections[sub], sub));
+    }
+
+    async function renderSecurity() {
+        if (!canViewSecurity()) { document.getElementById("dynamicContent").innerHTML = "<div class='alert alert-warning'>Доступ запрещён</div>"; return; }
+        const colRef = collection(db, "security_rules");
+        let html = `<div class="d-flex justify-content-between align-items-center mb-3"><h5>Правила и постановления охраны</h5>${canEditSecurity() ? '<button class="btn btn-custom btn-sm" id="createNewBtn">+ Добавить</button>' : ''}</div><div id="recordsList">Загрузка...</div>`;
+        document.getElementById("dynamicContent").innerHTML = html;
+        onSnapshot(query(colRef, orderBy("createdAt", "desc")), (snapshot) => {
+            const recordsDiv = document.getElementById("recordsList");
+            if (!recordsDiv) return;
+            if (snapshot.empty) { recordsDiv.innerHTML = "<div class='alert alert-light'>Нет правил</div>"; return; }
+            let table = `<table class="table table-custom table-hover"><thead><th>Название</th><th>Описание</th><th>Действия</th></thead><tbody>`;
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                const id = docSnap.id;
+                table += `<tr data-id="${id}" data-collection="security_rules" data-type="security">
+                            <td>${data.title || ""}</td>
+                            <td>${(data.description || "").substring(0, 50)}...</td>
+                             <td>${canEditSecurity() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${id}" data-collection="security_rules" data-type="security"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${id}" data-collection="security_rules"><i class="bi bi-trash"></i></button>` : '—'}</td>
+                          </tr>`;
+            });
+            table += `</tbody></table>`;
+            recordsDiv.innerHTML = table;
+            attachTableEvents("recordsList", "security_rules", canEditSecurity());
+        });
+        if (canEditSecurity()) document.getElementById("createNewBtn")?.addEventListener("click", () => openCreateModal("security_rules", "security"));
+    }
+
+    // ================== МОДАЛКИ СОЗДАНИЯ/РЕДАКТИРОВАНИЯ (с поддержкой изображений) ==================
+    async function openCreateModal(collectionName, type) {
+        const modal = new bootstrap.Modal(document.getElementById("entryModal"));
+        let specificFields = "";
+        if (type === "contracts") specificFields = `<input class="form-control mb-2" id="name" placeholder="Название договора"><input class="form-control mb-2" id="partner" placeholder="Контрагент"><input class="form-control mb-2" id="amount" placeholder="Сумма">`;
+        else if (type === "businesses") specificFields = `<input class="form-control mb-2" id="businessName" placeholder="Название бизнеса"><input class="form-control mb-2" id="director" placeholder="Директор"><input class="form-control mb-2" id="idCard" placeholder="ID Карта"><input class="form-control mb-2" id="emailId" placeholder="Почта-идентификатор">`;
+        else if (type === "taxes") specificFields = `<input class="form-control mb-2" id="taxType" placeholder="Тип налога"><select class="form-select mb-2" id="category"><option>Федеральный</option><option>Региональный</option><option>Местный</option></select><input class="form-control mb-2" id="rate" placeholder="Ставка %">`;
+        else if (type === "budget") specificFields = `<select class="form-select mb-2" id="type"><option value="income">Приход</option><option value="expense">Расход</option></select><input class="form-control mb-2" id="amount" placeholder="Сумма"><input class="form-control mb-2" id="purpose" placeholder="Назначение">`;
+        else if (type === "amnesty") specificFields = `<input class="form-control mb-2" id="title" placeholder="Название дела"><select class="form-select mb-2" id="status"><option value="check">Проверка материалов</option><option value="hearing">Ожидает слушания</option><option value="rejected">Отказано</option><option value="approved">Одобрено</option></select>`;
+        else if (type === "laws" || type === "decrees") specificFields = `<input class="form-control mb-2" id="title" placeholder="Название">`;
+        else if (type === "employed" || type === "candidates") specificFields = `<input class="form-control mb-2" id="fio" placeholder="ФИО"><input class="form-control mb-2" id="idCard" placeholder="ID Карта"><input class="form-control mb-2" id="position" placeholder="Должность"><input class="form-control mb-2" id="photo" placeholder="Ссылка на фото (URL)"><select class="form-select mb-2" id="status"><option value="pending">На проверке</option><option value="approved">Принят</option><option value="rejected">Отказ</option></select>`;
+        else specificFields = `<input class="form-control mb-2" id="title" placeholder="Название">`;
+        const common = `<textarea class="form-control mb-2" id="description" rows="3" placeholder="Полное описание"></textarea>
+                        <hr><label>Изображения:</label>
+                        <div class="mb-2"><input type="file" id="imageUploads" multiple class="form-control" accept="image/*"><small>Загрузить файлы</small></div>
+                        <div class="mb-2"><input type="text" id="imageUrlInput" class="form-control" placeholder="URL изображения"><button type="button" id="addImageUrlBtn" class="btn btn-sm btn-outline-custom mt-1">Добавить по ссылке</button></div>
+                        <div id="tempImageUrls" class="small text-muted"></div>
+                        <hr><label>Документы:</label>
+                        <input class="form-control mb-2" id="docLinks" placeholder="Ссылки на документы (через запятую)">`;
+        document.getElementById("modalBodyForm").innerHTML = specificFields + common;
+        let imageUrls = [];
+        document.getElementById("addImageUrlBtn")?.addEventListener("click", () => {
+            const url = document.getElementById("imageUrlInput").value.trim();
+            if (url) { imageUrls.push(url); document.getElementById("tempImageUrls").innerHTML = `Добавлено ссылок: ${imageUrls.length}`; document.getElementById("imageUrlInput").value = ""; }
+            else alert("Введите URL");
+        });
+        document.getElementById("saveEntryBtn").onclick = async () => {
+            let newData = { createdAt: new Date() };
+            const fields = ["name","partner","amount","businessName","director","idCard","emailId","taxType","category","rate","type","purpose","title","status","fio","position","photo","description"];
+            fields.forEach(f => { if(document.getElementById(f)) newData[f] = document.getElementById(f).value; });
+            const files = document.getElementById("imageUploads")?.files;
+            let urls = [];
+            if(files) for(let f of files) { let url = await uploadImageToImgbb(f); if(url) urls.push(url); }
+            urls.push(...imageUrls);
+            if(urls.length) newData.images = urls;
+            if(document.getElementById("docLinks")) newData.documents = document.getElementById("docLinks")?.value.split(",").map(s=>s.trim()) || [];
+            await addDoc(collection(db, collectionName), newData);
+            modal.hide();
+        };
+        modal.show();
+    }
+
+    async function openEditModal(collectionName, docId, type) {
+        const snap = await getDoc(doc(db, collectionName, docId));
+        if(!snap.exists()) return;
+        const data = snap.data();
+        const modal = new bootstrap.Modal(document.getElementById("entryModal"));
+        let specificFields = "";
+        if (type === "contracts") specificFields = `<input class="form-control mb-2" id="name" value="${data.name || ''}"><input class="form-control mb-2" id="partner" value="${data.partner || ''}"><input class="form-control mb-2" id="amount" value="${data.amount || ''}">`;
+        else if (type === "businesses") specificFields = `<input class="form-control mb-2" id="businessName" value="${data.businessName || ''}"><input class="form-control mb-2" id="director" value="${data.director || ''}"><input class="form-control mb-2" id="idCard" value="${data.idCard || ''}"><input class="form-control mb-2" id="emailId" value="${data.emailId || ''}">`;
+        else if (type === "taxes") specificFields = `<input class="form-control mb-2" id="taxType" value="${data.taxType || ''}"><select class="form-select mb-2" id="category"><option ${data.category==='Федеральный'?'selected':''}>Федеральный</option><option ${data.category==='Региональный'?'selected':''}>Региональный</option><option ${data.category==='Местный'?'selected':''}>Местный</option></select><input class="form-control mb-2" id="rate" value="${data.rate || ''}">`;
+        else if (type === "budget") specificFields = `<select class="form-select mb-2" id="type"><option ${data.type==='income'?'selected':''} value="income">Приход</option><option ${data.type==='expense'?'selected':''} value="expense">Расход</option></select><input class="form-control mb-2" id="amount" value="${data.amount || ''}"><input class="form-control mb-2" id="purpose" value="${data.purpose || ''}">`;
+        else if (type === "amnesty") specificFields = `<input class="form-control mb-2" id="title" value="${data.title || ''}"><select class="form-select mb-2" id="status"><option ${data.status==='check'?'selected':''} value="check">Проверка</option><option ${data.status==='hearing'?'selected':''} value="hearing">Ожидает слушания</option><option ${data.status==='rejected'?'selected':''} value="rejected">Отказано</option><option ${data.status==='approved'?'selected':''} value="approved">Одобрено</option></select>`;
+        else if (type === "laws" || type === "decrees") specificFields = `<input class="form-control mb-2" id="title" value="${data.title || ''}">`;
+        else if (type === "employed" || type === "candidates") specificFields = `<input class="form-control mb-2" id="fio" value="${data.fio || ''}"><input class="form-control mb-2" id="idCard" value="${data.idCard || ''}"><input class="form-control mb-2" id="position" value="${data.position || ''}"><input class="form-control mb-2" id="photo" value="${data.photo || ''}"><select class="form-select mb-2" id="status"><option ${data.status==='pending'?'selected':''} value="pending">На проверке</option><option ${data.status==='approved'?'selected':''} value="approved">Принят</option><option ${data.status==='rejected'?'selected':''} value="rejected">Отказ</option></select>`;
+        else specificFields = `<input class="form-control mb-2" id="title" value="${data.title || ''}">`;
+        let currentImagesHtml = data.images && data.images.length ? `<div class="mb-2"><label>Текущие изображения:</label><div class="img-thumb-list">${data.images.map(img => `<img src="${img}" width="60">`).join('')}</div></div>` : "";
+        const common = `<textarea class="form-control mb-2" id="description" rows="3">${data.description || ""}</textarea>
+                        <hr><label>Добавить новые изображения:</label>
+                        <div class="mb-2"><input type="file" id="imageUploads" multiple class="form-control" accept="image/*"><small>Загрузить файлы</small></div>
+                        <div class="mb-2"><input type="text" id="imageUrlInput" class="form-control" placeholder="URL изображения"><button type="button" id="addImageUrlBtn" class="btn btn-sm btn-outline-custom mt-1">Добавить по ссылке</button></div>
+                        <div id="tempImageUrls" class="small text-muted"></div>
+                        ${currentImagesHtml}
+                        <hr><label>Документы:</label>
+                        <input class="form-control mb-2" id="docLinks" value="${(data.documents || []).join(', ')}">`;
+        document.getElementById("modalBodyForm").innerHTML = specificFields + common;
+        let newImageUrls = [];
+        document.getElementById("addImageUrlBtn")?.addEventListener("click", () => {
+            const url = document.getElementById("imageUrlInput").value.trim();
+            if (url) { newImageUrls.push(url); document.getElementById("tempImageUrls").innerHTML = `Добавлено новых ссылок: ${newImageUrls.length}`; document.getElementById("imageUrlInput").value = ""; }
+            else alert("Введите URL");
+        });
+        document.getElementById("saveEntryBtn").onclick = async () => {
+            let updateData = {};
+            const fields = ["name","partner","amount","businessName","director","idCard","emailId","taxType","category","rate","type","purpose","title","status","fio","position","photo","description"];
+            fields.forEach(f => { if(document.getElementById(f)) updateData[f] = document.getElementById(f).value; });
+            const files = document.getElementById("imageUploads")?.files;
+            let newImages = [...(data.images || [])];
+            if(files) for(let f of files) { let url = await uploadImageToImgbb(f); if(url) newImages.push(url); }
+            newImages.push(...newImageUrls);
+            if(newImages.length) updateData.images = newImages;
+            if(document.getElementById("docLinks")) updateData.documents = document.getElementById("docLinks")?.value.split(",").map(s=>s.trim()) || [];
+            await updateDoc(doc(db, collectionName, docId), updateData);
+            modal.hide();
+        };
+        modal.show();
+    }
+
+    // ================== УПРАВЛЕНИЕ ПОЛЬЗОВАТЕЛЯМИ ==================
+    async function renderUsersManagement() {
+        if (!canManageUsers()) return "<div class='alert alert-warning'>Доступ запрещён</div>";
+        const usersSnap = await getDocs(collection(db, "users"));
+        let html = `<table class="table"><thead><th>Логин</th><th>Отображаемое имя</th><th>Роль</th><th>Действие</th></thead><tbody>`;
+        for (const userDoc of usersSnap.docs) {
+            const data = userDoc.data();
+            html += `<tr>
+                        <td>${data.login || userDoc.id}</td>
+                        <td><input type="text" class="form-control form-control-sm" id="name_${userDoc.id}" value="${data.displayName || ''}" style="width:150px;"></td>
+                        <td><select class="form-select form-select-sm role-select" data-uid="${userDoc.id}" style="width:140px;">
+                            <option value="user" ${data.role === 'user' ? 'selected' : ''}>Пользователь</option>
+                            <option value="economist" ${data.role === 'economist' ? 'selected' : ''}>Экономист</option>
+                            <option value="lawyer" ${data.role === 'lawyer' ? 'selected' : ''}>Юрист</option>
+                            <option value="security" ${data.role === 'security' ? 'selected' : ''}>Охрана</option>
+                            <option value="assistant" ${data.role === 'assistant' ? 'selected' : ''}>Помощник</option>
+                            <option value="deputy_mayor" ${data.role === 'deputy_mayor' ? 'selected' : ''}>Зам.мэра</option>
+                        </select>
+                        <td><button class="btn btn-sm btn-outline-custom update-user-btn" data-uid="${userDoc.id}">Сохранить</button>
+                     </tr>`;
+        }
+        html += `</tbody>}</div>`;
+        return html;
+    }
+
+    // ================== НАВИГАЦИЯ И АВТОРИЗАЦИЯ ==================
+    function buildNavigation() {
+        const navContainer = document.getElementById("mainNav");
+        let items = [
+            { id: "dashboard", icon: "bi-speedometer2", label: "Главная / Статистика", roles: ["user","deputy_mayor","assistant","economist","lawyer","security"] },
+            { id: "economy", icon: "bi-calculator-fill", label: "Экономический отдел", roles: ["deputy_mayor","assistant","economist","lawyer"] },
+            { id: "legal", icon: "bi-gavel", label: "Юридический отдел", roles: ["deputy_mayor","assistant","lawyer","economist","security","user"] },
+            { id: "hr", icon: "bi-person-badge", label: "Кадры", roles: ["deputy_mayor","assistant"] },
+            { id: "security", icon: "bi-shield-check", label: "Охрана", roles: ["deputy_mayor","assistant","security"] }
+        ];
+        if (canManageUsers()) items.push({ id: "users", icon: "bi-people", label: "Сотрудники", roles: ["deputy_mayor","assistant"] });
+        navContainer.innerHTML = "";
+        for (let item of items) {
+            if (item.roles.includes(currentUserRole) || canManageUsers() && item.id === "users") {
+                const btn = document.createElement("button");
+                btn.className = `nav-link ${currentMain === item.id ? "active" : ""}`;
+                btn.setAttribute("data-main", item.id);
+                btn.innerHTML = `<i class="bi ${item.icon}"></i> ${item.label}`;
+                btn.addEventListener("click", () => {
+                    document.querySelectorAll("#mainNav .nav-link").forEach(b => b.classList.remove("active"));
+                    btn.classList.add("active");
+                    currentMain = item.id;
+                    if (currentMain === "dashboard") renderDashboard();
+                    else if (currentMain === "economy") { currentSub = "contracts"; renderEconomy(currentSub); }
+                    else if (currentMain === "legal") { currentSub = "amnesty"; renderLegal(currentSub); }
+                    else if (currentMain === "hr") { currentSub = "employed"; renderHR(currentSub); }
+                    else if (currentMain === "security") renderSecurity();
+                    else if (currentMain === "users") { document.getElementById("dynamicContent").innerHTML = "<div>Загрузка...</div>"; renderUsersManagement().then(html => { document.getElementById("dynamicContent").innerHTML = html; attachUserEvents(); }); }
+                });
+                navContainer.appendChild(btn);
+            }
+        }
+    }
+
+    function attachUserEvents() {
+        document.querySelectorAll(".update-user-btn").forEach(btn => {
+            btn.addEventListener("click", async () => {
+                const uid = btn.dataset.uid;
+                const newRole = document.querySelector(`.role-select[data-uid="${uid}"]`).value;
+                const newName = document.getElementById(`name_${uid}`).value;
+                await updateUserRole(uid, newRole);
+                await updateUserDisplayName(uid, newName);
+                alert("Данные сотрудника обновлены");
+                if (currentMain === "users") { document.getElementById("dynamicContent").innerHTML = await renderUsersManagement(); attachUserEvents(); }
+            });
+        });
+    }
+
+    function showProfileModal() {
+        document.getElementById("profileDisplayName").value = currentUserDisplayName;
+        document.getElementById("profileRole").value = currentUserRole === "deputy_mayor" ? "Зам.мэра" : currentUserRole === "assistant" ? "Помощник" : currentUserRole === "economist" ? "Экономист" : currentUserRole === "lawyer" ? "Юрист" : currentUserRole === "security" ? "Охрана" : "Пользователь";
+        const modal = new bootstrap.Modal(document.getElementById("profileModal"));
+        document.getElementById("saveProfileBtn").onclick = async () => {
+            const newName = document.getElementById("profileDisplayName").value.trim();
+            if (newName) await updateUserDisplayName(currentUser.uid, newName);
+            modal.hide();
+        };
+        modal.show();
+    }
+
+    function renderAuthButtons() {
+        const authDiv = document.getElementById("authWidget");
+        if (!currentUser) {
+            authDiv.innerHTML = `<button class="btn btn-outline-primary" id="showAuthBtn">Вход / Регистрация</button>`;
+            document.getElementById("showAuthBtn")?.addEventListener("click", () => showAuthModal());
+        } else {
+            authDiv.innerHTML = `<span class="badge bg-secondary fs-6 p-2 clickable-name" id="profileBtn">${currentUserDisplayName || currentUser.email?.split('@')[0]} (${currentUserRole === "deputy_mayor" ? "Зам.мэра" : currentUserRole === "assistant" ? "Помощник" : currentUserRole})</span><button class="btn btn-sm btn-danger" id="logoutBtn">Выйти</button>`;
+            document.getElementById("profileBtn")?.addEventListener("click", () => showProfileModal());
+            document.getElementById("logoutBtn")?.addEventListener("click", () => signOut(auth));
+        }
+    }
+
+    function showAuthModal() {
+        const modal = new bootstrap.Modal(document.getElementById("loginRegisterModal"));
+        document.getElementById("loginForm").style.display = "block";
+        document.getElementById("registerForm").style.display = "none";
+        document.getElementById("doLoginBtn").onclick = async () => { await loginWithLogin(document.getElementById("loginUsername").value.trim(), document.getElementById("loginPassword").value); modal.hide(); };
+        document.getElementById("doRegisterBtn").onclick = async () => { const ok = await registerWithLogin(document.getElementById("regUsername").value.trim(), document.getElementById("regPassword").value); if(ok){ modal.hide(); setTimeout(()=>showAuthModal(),500); } };
+        document.getElementById("switchToRegisterBtn").onclick = () => { document.getElementById("loginForm").style.display = "none"; document.getElementById("registerForm").style.display = "block"; document.getElementById("loginModalTitle").innerText = "Регистрация"; };
+        document.getElementById("switchToLoginBtn").onclick = () => { document.getElementById("loginForm").style.display = "block"; document.getElementById("registerForm").style.display = "none"; document.getElementById("loginModalTitle").innerText = "Вход"; };
+        modal.show();
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+        currentUser = user;
+        if (user && db) {
+            const userData = await fetchUserData(user.uid);
+            currentUserRole = userData.role;
+            currentUserDisplayName = userData.displayName;
+            renderAuthButtons();
+            document.getElementById("mainApp").style.display = "block";
+            buildNavigation();
+            renderDashboard();
+        } else {
+            document.getElementById("mainApp").style.display = "none";
+            renderAuthButtons();
+        }
+    });
+</script>
+</body>
+</html>
