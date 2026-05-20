@@ -39,55 +39,27 @@
         .subnav-btn.active { background: #e9ecef; color: #2c7da0; }
         .subnav-btn:hover { background: #f8f9fa; color: #2c7da0; transform: translateY(-1px); }
         
-        /* СТИЛИ ТАБЛИЦ */
         .table-custom { font-size: 0.85rem; width: 100%; }
         .table-custom th { background: #f8f9fa; font-weight: 600; border-bottom: 2px solid #dee2e6; padding: 10px 8px; }
         .table-custom td { vertical-align: middle; padding: 8px; }
         .table-custom tbody tr { cursor: pointer; transition: 0.15s; }
         .table-custom tbody tr:hover { background-color: #f8f9fa; }
         
-        /* ТОЛЬКО ДЛЯ ТАБЛИЦЫ СОТРУДНИКОВ */
         .users-table { table-layout: fixed; }
         .users-table td:last-child, .users-table th:last-child { width: 120px; text-align: center; }
         
         .id-card-badge { background: #e9ecef; padding: 2px 8px; border-radius: 20px; font-family: monospace; font-size: 0.7rem; display: inline-block; }
         
-        /* ТУЛТИПЫ */
-        .custom-tooltip {
-            position: fixed;
-            background: white;
-            border: 1px solid #ced4da;
-            border-radius: 12px;
-            padding: 12px;
-            max-width: 320px;
-            max-height: 250px;
-            overflow-y: auto;
-            z-index: 10000;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-            font-size: 0.8rem;
-            pointer-events: none;
-            background-color: #fff;
-            color: #212529;
-        }
-        .custom-tooltip::-webkit-scrollbar { width: 6px; }
-        .custom-tooltip::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
-        .custom-tooltip::-webkit-scrollbar-thumb { background: #2c7da0; border-radius: 10px; }
         .img-thumb-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
-        .img-thumb-list img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; cursor: pointer; }
-        .clickable-name { cursor: pointer; transition: 0.2s; }
-        .clickable-name:hover { text-decoration: underline; opacity: 0.8; }
+        .img-thumb-item { position: relative; display: inline-block; }
+        .img-thumb-item img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; cursor: pointer; }
+        .img-thumb-item .remove-img-btn { position: absolute; top: -8px; right: -8px; background: #dc3545; color: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; border: none; opacity: 0.9; transition: 0.2s; }
+        .img-thumb-item .remove-img-btn:hover { opacity: 1; transform: scale(1.05); }
         
-        /* КАЛЕНДАРЬ */
-        .fc { font-size: 0.85rem; }
-        .fc .fc-button-primary { background-color: #2c7da0; border-color: #2c7da0; }
-        .fc .fc-button-primary:hover { background-color: #1f5e7c; border-color: #1f5e7c; }
-        .fc-day:hover { background-color: #f0f7fa; cursor: pointer; }
-        .fc-daygrid-day-number { font-weight: 500; }
-        .loading-spinner { text-align: center; padding: 40px; }
-        .tooltip-event-item { margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #eee; }
-        .tooltip-event-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .scroll-smooth { scroll-behavior: smooth; }
+        .detail-modal-content { max-height: 70vh; overflow-y: auto; scroll-behavior: smooth; }
+        .content-card, .sidebar-card { scroll-behavior: smooth; }
         
-        /* ВИДЖЕТ БЮДЖЕТА */
         .budget-widget {
             background: linear-gradient(135deg, #2c7da0 0%, #1f5068 100%);
             border-radius: 20px;
@@ -95,20 +67,42 @@
             margin-bottom: 24px;
             color: white;
         }
-        .budget-widget .stat-number {
-            color: white;
-            font-size: 2.5rem;
-            font-weight: 700;
-        }
+        .budget-widget .stat-number { color: white; font-size: 2.5rem; font-weight: 700; }
         
-        /* КАРТОЧКИ ОТЧЕТОВ */
-        .report-card {
-            transition: transform 0.2s, box-shadow 0.2s;
+        .report-card { transition: transform 0.2s, box-shadow 0.2s; }
+        .report-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+        
+        .search-box {
+            background: white;
+            border-radius: 30px;
+            padding: 8px 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 10px;
+            align-items: center;
         }
-        .report-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        .search-box input {
+            border: none;
+            outline: none;
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 30px;
+            background: #f8f9fa;
         }
+        .search-box input:focus { background: #e9ecef; }
+        .search-box button { white-space: nowrap; }
+        
+        .btn-back {
+            background: #6c757d;
+            color: white;
+            border-radius: 30px;
+            padding: 6px 16px;
+            font-size: 0.8rem;
+            border: none;
+            transition: 0.2s;
+        }
+        .btn-back:hover { background: #5a6268; transform: scale(1.02); }
         
         @media (max-width: 768px) {
             .table-custom { font-size: 0.75rem; }
@@ -118,7 +112,7 @@
         }
     </style>
 </head>
-<body>
+<body class="scroll-smooth">
 
 <div class="container py-3" id="app">
     <div class="navbar-custom d-flex justify-content-between align-items-center flex-wrap">
@@ -154,9 +148,10 @@
 <div class="modal fade" id="profileModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-light"><h5 class="modal-title">Профиль сотрудника</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="mb-3"><label>Отображаемое имя (ФИО)</label><input type="text" class="form-control" id="profileDisplayName" placeholder="Имя сотрудника"></div><div class="mb-3"><label>Роль</label><input type="text" class="form-control" id="profileRole" disabled></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button><button type="button" class="btn btn-custom" id="saveProfileBtn">Сохранить</button></div></div></div></div>
 <div class="modal fade" id="usersModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header bg-light"><h5 class="modal-title">Управление сотрудниками</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="usersModalBody"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button></div></div></div></div>
 <div class="modal fade" id="entryModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header bg-light"><h5 class="modal-title" id="modalTitle">Создать запись</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="modalBodyForm"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button><button type="button" class="btn btn-custom" id="saveEntryBtn">Сохранить</button></div></div></div></div>
-<div class="modal fade" id="detailModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header bg-light"><h5 class="modal-title">Детальная информация</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="detailModalBody"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button></div></div></div></div>
+<div class="modal fade" id="detailModal" tabindex="-1"><div class="modal-dialog modal-xl"><div class="modal-content"><div class="modal-header bg-light"><h5 class="modal-title">Детальная информация</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body detail-modal-content" id="detailModalBody"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button></div></div></div></div>
 <div class="modal fade" id="loginRegisterModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="loginModalTitle">Вход</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div id="loginForm"><div class="mb-3"><label>Логин</label><input type="text" class="form-control" id="loginUsername" placeholder="myusername"></div><div class="mb-3"><label>Пароль</label><input type="password" class="form-control" id="loginPassword"></div><button class="btn btn-custom w-100" id="doLoginBtn">Войти</button><hr><button class="btn btn-link w-100" id="switchToRegisterBtn">Нет аккаунта? Зарегистрироваться</button></div><div id="registerForm" style="display:none;"><div class="mb-3"><label>Логин</label><input type="text" class="form-control" id="regUsername" placeholder="myusername"></div><div class="mb-3"><label>Пароль (мин 6 символов)</label><input type="password" class="form-control" id="regPassword"></div><button class="btn btn-success w-100" id="doRegisterBtn">Зарегистрироваться</button><hr><button class="btn btn-link w-100" id="switchToLoginBtn">Уже есть аккаунт? Войти</button></div></div></div></div></div>
 <div class="modal fade" id="eventModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-light"><h5 class="modal-title" id="eventModalTitle">Добавить событие</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="eventDate"><div class="mb-2"><label>Название события</label><input type="text" id="eventTitle" class="form-control" placeholder="Например: Совещание"></div><div class="mb-2"><label>Время</label><input type="time" id="eventTime" class="form-control"></div><div class="mb-2"><label>Комментарий</label><textarea id="eventComment" class="form-control" rows="3" placeholder="Дополнительная информация..."></textarea></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button><button type="button" class="btn btn-custom" id="saveEventBtn">Сохранить</button></div></div></div></div>
+<div class="modal fade" id="requestModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header bg-light"><h5 class="modal-title" id="requestModalTitle">Новое заявление</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="mb-3"><label>Тип заявления</label><select id="requestType" class="form-select"><option value="resignation">Заявление на увольнение по собственному желанию</option><option value="vacation">Заявление на отпуск</option><option value="transfer">Заявление на перевод</option><option value="other">Другое</option></select></div><div class="mb-3"><label>Заголовок</label><input type="text" id="requestTitle" class="form-control" placeholder="Краткое описание"></div><div class="mb-3"><label>Текст заявления</label><textarea id="requestContent" class="form-control" rows="8" placeholder="Подробное изложение..."></textarea></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button><button type="button" class="btn btn-custom" id="saveRequestBtn">Отправить</button></div></div></div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -186,7 +181,8 @@
     let currentMain = "calendarPage", currentSub = null;
     let calendarInstance = null;
     let allEventsCache = [];
-    let tooltipTimeout = null;
+    let currentSearchTerm = "";
+    let searchTimeout = null;
 
     async function uploadImageToImgbb(file) {
         if (!IMGBB_API_KEY) { alert("Укажите API ключ imgbb"); return null; }
@@ -197,6 +193,15 @@
             const data = await res.json();
             return data.success ? data.data.url : null;
         } catch(e) { alert("Ошибка загрузки"); return null; }
+    }
+
+    async function uploadMultipleImages(files) {
+        const urls = [];
+        for (const file of files) {
+            const url = await uploadImageToImgbb(file);
+            if (url) urls.push(url);
+        }
+        return urls;
     }
 
     async function fetchUserData(uid) {
@@ -254,83 +259,78 @@
         } catch (err) { alert("Неверный логин или пароль"); return false; }
     }
 
-    let activeTooltip = null;
-    
-    function hideTooltipImmediately() {
-        if (tooltipTimeout) {
-            clearTimeout(tooltipTimeout);
-            tooltipTimeout = null;
-        }
-        if (activeTooltip) {
-            activeTooltip.remove();
-            activeTooltip = null;
-        }
-    }
-    
-    function scheduleHideTooltip() {
-        if (tooltipTimeout) clearTimeout(tooltipTimeout);
-        tooltipTimeout = setTimeout(() => {
-            if (activeTooltip) {
-                activeTooltip.remove();
-                activeTooltip = null;
-            }
-            tooltipTimeout = null;
-        }, 200);
-    }
-    
-    function showTooltip(event, text, imageUrl) {
-        hideTooltipImmediately();
-        
-        const tooltip = document.createElement('div');
-        tooltip.className = 'custom-tooltip';
-        let content = text ? text.substring(0, 200) : '';
-        if (text && text.length > 200) content += '...';
-        tooltip.innerHTML = `<div><strong>📄 Описание:</strong><br>${content.replace(/\n/g, '<br>')}</div>`;
-        if (imageUrl) tooltip.innerHTML += `<div><img src="${imageUrl}" style="max-width:100%; max-height:100px; margin-top:8px;"></div>`;
-        document.body.appendChild(tooltip);
-        
-        let left = event.clientX + 15;
-        let top = event.clientY + 15;
-        if (left + tooltip.offsetWidth > window.innerWidth) left = event.clientX - tooltip.offsetWidth - 15;
-        if (top + tooltip.offsetHeight > window.innerHeight) top = event.clientY - tooltip.offsetHeight - 15;
-        tooltip.style.left = left + 'px';
-        tooltip.style.top = top + 'px';
-        activeTooltip = tooltip;
-    }
-    
-    function showDateTooltip(event, dateStr, events) {
-        if (!events || events.length === 0) return;
-        hideTooltipImmediately();
-        
-        const tooltip = document.createElement('div');
-        tooltip.className = 'custom-tooltip';
-        
-        let eventsHtml = `<div><strong>📅 События на ${dateStr}:</strong><br><br>`;
-        events.forEach(ev => {
-            eventsHtml += `<div class="tooltip-event-item">
-                <strong>📌 ${escapeHtml(ev.title)}</strong><br>
-                ${ev.time ? `🕒 ${ev.time}<br>` : ''}
-                ${ev.comment ? `<span class="text-muted small">💬 ${escapeHtml(ev.comment.substring(0, 80))}${ev.comment.length > 80 ? '...' : ''}</span>` : ''}
-            </div>`;
+    function searchFilter(items, searchFields) {
+        if (!currentSearchTerm || currentSearchTerm.length < 2) return items;
+        const term = currentSearchTerm.toLowerCase();
+        return items.filter(item => {
+            return searchFields.some(field => {
+                const value = item[field];
+                return value && String(value).toLowerCase().includes(term);
+            });
         });
-        eventsHtml += `</div>`;
+    }
+
+    function renderSearchBox(placeholder = "Поиск...", onSearch) {
+        return `
+            <div class="search-box">
+                <i class="bi bi-search text-muted"></i>
+                <input type="text" id="globalSearch" placeholder="${placeholder} (мин. 2 символа)" value="${escapeHtml(currentSearchTerm)}">
+                <button class="btn btn-sm btn-primary" id="searchBtn"><i class="bi bi-search"></i> Найти</button>
+                ${currentSearchTerm ? '<button class="btn btn-sm btn-outline-secondary" id="clearSearchBtn"><i class="bi bi-x-lg"></i> Сброс</button>' : ''}
+            </div>
+        `;
+    }
+
+    function attachSearchListener(callback) {
+        const searchBtn = document.getElementById("searchBtn");
+        const searchInput = document.getElementById("globalSearch");
         
-        tooltip.innerHTML = eventsHtml;
-        document.body.appendChild(tooltip);
+        if (searchBtn) {
+            searchBtn.removeEventListener('click', searchBtn._handler);
+            searchBtn._handler = () => {
+                currentSearchTerm = searchInput.value;
+                callback();
+            };
+            searchBtn.addEventListener('click', searchBtn._handler);
+        }
         
-        let left = event.clientX + 15;
-        let top = event.clientY + 15;
-        if (left + tooltip.offsetWidth > window.innerWidth) left = event.clientX - tooltip.offsetWidth - 15;
-        if (top + tooltip.offsetHeight > window.innerHeight) top = event.clientY - tooltip.offsetHeight - 15;
-        tooltip.style.left = left + 'px';
-        tooltip.style.top = top + 'px';
-        activeTooltip = tooltip;
+        if (searchInput) {
+            searchInput.removeEventListener('keypress', searchInput._keyHandler);
+            searchInput._keyHandler = (e) => {
+                if (e.key === 'Enter') {
+                    currentSearchTerm = searchInput.value;
+                    callback();
+                }
+            };
+            searchInput.addEventListener('keypress', searchInput._keyHandler);
+        }
+        
+        const clearBtn = document.getElementById("clearSearchBtn");
+        if (clearBtn) {
+            clearBtn.removeEventListener('click', clearBtn._handler);
+            clearBtn._handler = () => {
+                currentSearchTerm = "";
+                if (searchInput) searchInput.value = "";
+                callback();
+            };
+            clearBtn.addEventListener('click', clearBtn._handler);
+        }
     }
 
     function showDetailModal(data) {
-        let html = `<div><strong>📌 Полное описание:</strong><br><div style="max-height:200px; overflow-y:auto; white-space:pre-wrap;">${data.description || 'Нет описания'}</div></div>`;
+        let html = `<div><strong>📌 Полное описание:</strong><br><div style="max-height: 400px; overflow-y: auto; white-space: pre-wrap; background: #f8f9fa; padding: 12px; border-radius: 12px;">${escapeHtml(data.description || 'Нет описания')}</div></div>`;
+        if (data.content && !data.description) {
+            html = `<div><strong>📄 Содержание:</strong><br><div style="max-height: 400px; overflow-y: auto; white-space: pre-wrap; background: #f8f9fa; padding: 12px; border-radius: 12px;">${escapeHtml(data.content || 'Нет содержания')}</div></div>`;
+        }
+        if (data.history && data.history.length) {
+            html += `<hr><strong>📜 История изменений:</strong><div style="max-height: 250px; overflow-y: auto;">`;
+            data.history.forEach(h => {
+                html += `<div class="border-bottom py-2"><small class="text-muted">📅 ${h.date}</small><div class="mt-1">${escapeHtml(h.content.substring(0, 200))}${h.content.length > 200 ? '...' : ''}</div></div>`;
+            });
+            html += `</div>`;
+        }
         if (data.images && data.images.length) {
-            html += `<hr><strong>🖼️ Изображения:</strong><div class="img-thumb-list">${data.images.map(img => `<a href="${img}" target="_blank"><img src="${img}" width="80"></a>`).join('')}</div>`;
+            html += `<hr><strong>🖼️ Изображения:</strong><div class="img-thumb-list">${data.images.map(img => `<div class="img-thumb-item"><a href="${img}" target="_blank"><img src="${img}" width="80"></a></div>`).join('')}</div>`;
         }
         if (data.documents && data.documents.length) {
             html += `<hr><strong>📎 Связанные документы:</strong><ul>${data.documents.map(d => `<li><a href="${d}" target="_blank">${d}</a></li>`).join('')}</ul>`;
@@ -347,11 +347,7 @@
             
             container.querySelectorAll('tbody tr').forEach(tr => {
                 const oldClick = tr._clickHandler;
-                const oldEnter = tr._enterHandler;
-                const oldLeave = tr._leaveHandler;
                 if (oldClick) tr.removeEventListener('click', oldClick);
-                if (oldEnter) tr.removeEventListener('mouseenter', oldEnter);
-                if (oldLeave) tr.removeEventListener('mouseleave', oldLeave);
                 
                 const clickHandler = async (e) => {
                     if (e.target.classList.contains('editBtn') || e.target.classList.contains('deleteBtn')) return;
@@ -361,28 +357,8 @@
                     if (snapDetail.exists()) showDetailModal(snapDetail.data());
                 };
                 
-                const enterHandler = async (e) => {
-                    const id = tr.dataset.id;
-                    const colName = tr.dataset.collection;
-                    const snapDetail = await getDoc(doc(db, colName, id));
-                    if (snapDetail.exists()) {
-                        const d = snapDetail.data();
-                        const firstImg = (d.images && d.images[0]) || d.photo || "";
-                        showTooltip(e, d.description || "", firstImg);
-                    }
-                };
-                
-                const leaveHandler = () => {
-                    scheduleHideTooltip();
-                };
-                
                 tr._clickHandler = clickHandler;
-                tr._enterHandler = enterHandler;
-                tr._leaveHandler = leaveHandler;
-                
                 tr.addEventListener('click', clickHandler);
-                tr.addEventListener('mouseenter', enterHandler);
-                tr.addEventListener('mouseleave', leaveHandler);
             });
             
             if (canEdit) {
@@ -396,7 +372,6 @@
                     btn._deleteHandler = async (e) => { 
                         e.stopPropagation(); 
                         if(confirm("Удалить?")) {
-                            // Если удаляем бизнес - удаляем связанный отчет
                             if (btn.dataset.collection === "economy_businesses") {
                                 const reportsSnap = await getDocs(query(collection(db, "business_reports"), where("businessId", "==", btn.dataset.id)));
                                 if (!reportsSnap.empty) {
@@ -421,18 +396,18 @@
             </div>
             <div id="calendarContainer"></div>
             <div class="mt-3 small text-muted">
-                <i class="bi bi-info-circle"></i> Нажмите на дату, чтобы добавить событие. Нажмите на событие, чтобы удалить. Наведите на дату с событием для просмотра.
+                <i class="bi bi-info-circle"></i> Нажмите на дату, чтобы добавить событие. Нажмите на событие, чтобы удалить.
             </div>
         `;
         document.getElementById("dynamicContent").innerHTML = html;
-        await loadAllEventsForTooltips();
-        setTimeout(() => initCalendarWithTooltips(), 100);
+        await loadAllEventsForCalendar();
+        setTimeout(() => initCalendar(), 100);
         document.getElementById("refreshCalendarBtn")?.addEventListener("click", () => {
-            loadAllEventsForTooltips().then(() => initCalendarWithTooltips());
+            loadAllEventsForCalendar().then(() => initCalendar());
         });
     }
 
-    async function loadAllEventsForTooltips() {
+    async function loadAllEventsForCalendar() {
         const today = new Date();
         const startDate = new Date(today);
         startDate.setDate(today.getDate() - 7);
@@ -461,10 +436,6 @@
         });
     }
 
-    function getEventsForDate(dateStr) {
-        return allEventsCache.filter(ev => ev.date === dateStr);
-    }
-
     function formatDateToYMD(date) {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -472,7 +443,7 @@
         return `${year}-${month}-${day}`;
     }
 
-    async function initCalendarWithTooltips() {
+    async function initCalendar() {
         if (calendarInstance) {
             calendarInstance.destroy();
             calendarInstance = null;
@@ -527,33 +498,9 @@
             eventClick: (info) => {
                 if(confirm(`Удалить событие "${info.event.title}"?`)) {
                     deleteDoc(doc(db, "calendar_events", info.event.id)).then(async () => {
-                        await loadAllEventsForTooltips();
-                        initCalendarWithTooltips();
+                        await loadAllEventsForCalendar();
+                        initCalendar();
                     });
-                }
-            },
-            dayCellDidMount: (info) => {
-                const dateStr = formatDateToYMD(info.date);
-                const eventsOnDate = getEventsForDate(dateStr);
-                if (eventsOnDate.length > 0) {
-                    const dayEl = info.el;
-                    dayEl.style.cursor = 'pointer';
-                    
-                    const enterHandler = (e) => {
-                        showDateTooltip(e, dateStr, eventsOnDate);
-                    };
-                    const leaveHandler = () => {
-                        scheduleHideTooltip();
-                    };
-                    
-                    dayEl.removeEventListener('mouseenter', dayEl._calEnter);
-                    dayEl.removeEventListener('mouseleave', dayEl._calLeave);
-                    
-                    dayEl._calEnter = enterHandler;
-                    dayEl._calLeave = leaveHandler;
-                    
-                    dayEl.addEventListener('mouseenter', enterHandler);
-                    dayEl.addEventListener('mouseleave', leaveHandler);
                 }
             }
         });
@@ -567,6 +514,57 @@
         return true;
     }
 
+    // ========== ФУНКЦИИ ДЛЯ РАБОТЫ С ИЗОБРАЖЕНИЯМИ ==========
+    let tempImageUrls = [];
+    let currentImagesList = [];
+    
+    function renderImageManager(images = [], onRemoveCallback) {
+        const allImages = [...images];
+        
+        let html = `
+            <div class="mb-3">
+                <label><i class="bi bi-images"></i> Изображения</label>
+                <div class="mb-2">
+                    <input type="file" id="imageUploads" multiple class="form-control" accept="image/*">
+                    <small class="text-muted">Можно выбрать несколько файлов одновременно</small>
+                </div>
+                <div class="mb-2">
+                    <input type="text" id="imageUrlInput" class="form-control" placeholder="URL изображения">
+                    <button type="button" id="addImageUrlBtn" class="btn btn-sm btn-outline-custom mt-1"><i class="bi bi-plus-lg"></i> Добавить по ссылке</button>
+                </div>
+                <div id="imagePreviewArea" class="img-thumb-list"></div>
+            </div>
+        `;
+        
+        return { html, allImages };
+    }
+    
+    function updateImagePreview(containerId, images, onRemove) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        
+        if (!images || images.length === 0) {
+            container.innerHTML = '<div class="text-muted small">Нет изображений</div>';
+            return;
+        }
+        
+        container.innerHTML = images.map((img, idx) => `
+            <div class="img-thumb-item">
+                <img src="${img}" alt="Изображение ${idx+1}">
+                <button class="remove-img-btn" data-index="${idx}" title="Удалить"><i class="bi bi-x"></i></button>
+            </div>
+        `).join('');
+        
+        container.querySelectorAll('.remove-img-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const idx = parseInt(btn.dataset.index);
+                images.splice(idx, 1);
+                updateImagePreview(containerId, images, onRemove);
+                if (onRemove) onRemove(images);
+            });
+        });
+    }
+
     // ========== ОТЧЕТЫ ПО БИЗНЕСАМ ==========
     async function renderBusinessReports() {
         if (!canViewEconomy()) {
@@ -575,10 +573,12 @@
         }
         
         const businessesSnap = await getDocs(collection(db, "economy_businesses"));
-        const businesses = [];
+        let businesses = [];
         businessesSnap.forEach(doc => {
             businesses.push({ id: doc.id, ...doc.data() });
         });
+        
+        businesses = searchFilter(businesses, ['businessName', 'director']);
         
         const reportsSnap = await getDocs(collection(db, "business_reports"));
         const reports = {};
@@ -587,14 +587,16 @@
         });
         
         let html = `
+            ${renderSearchBox("Поиск по названию бизнеса или директору...")}
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5><i class="bi bi-file-text-fill"></i> Отчеты по бизнесам</h5>
+                <button class="btn btn-back" id="backToEconomyBtn"><i class="bi bi-arrow-left"></i> Вернуться к разделам</button>
             </div>
             <div class="row">
         `;
         
         if (businesses.length === 0) {
-            html += `<div class="col-12"><div class="alert alert-light">Нет добавленных бизнесов. Сначала добавьте бизнес в разделе "Бизнесы".</div></div>`;
+            html += `<div class="col-12"><div class="alert alert-light">Нет добавленных бизнесов, соответствующих поиску.</div></div>`;
         } else {
             for (const business of businesses) {
                 const report = reports[business.id];
@@ -639,6 +641,13 @@
         html += `</div>`;
         document.getElementById("dynamicContent").innerHTML = html;
         
+        attachSearchListener(() => renderBusinessReports());
+        
+        document.getElementById("backToEconomyBtn")?.addEventListener("click", () => {
+            currentSub = "contracts";
+            renderEconomy(currentSub);
+        });
+        
         document.querySelectorAll('.edit-report-btn').forEach(btn => {
             btn.addEventListener('click', async () => {
                 const businessId = btn.dataset.businessId;
@@ -680,7 +689,7 @@
         const modalBody = `
             <div class="mb-3">
                 <label><i class="bi bi-info-circle"></i> Текущий отчет</label>
-                <textarea id="reportContent" class="form-control" rows="10" placeholder="Введите текст отчета...">${existingReport?.content || ''}</textarea>
+                <textarea id="reportContent" class="form-control" rows="10" placeholder="Введите текст отчета...">${escapeHtml(existingReport?.content || '')}</textarea>
             </div>
             ${historyHtml}
             <hr>
@@ -735,6 +744,168 @@
         modal.show();
     }
 
+    // ========== ЗАЯВКИ И ПОСТАНОВЛЕНИЯ ==========
+    async function renderRequestsAndDecrees() {
+        let html = `
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <h5><i class="bi bi-envelope-paper"></i> Заявки и постановления</h5>
+                <button class="btn btn-custom btn-sm" id="newRequestBtn"><i class="bi bi-plus-lg"></i> Подать заявление</button>
+            </div>
+            <ul class="nav nav-tabs mb-3" id="requestsTabs">
+                <li class="nav-item"><button class="nav-link active" data-tab="requests">📋 Мои заявления</button></li>
+                <li class="nav-item"><button class="nav-link" data-tab="decrees">📜 Постановления (из юр. отдела)</button></li>
+            </ul>
+            <div id="requestsContent">Загрузка...</div>
+        `;
+        document.getElementById("dynamicContent").innerHTML = html;
+        
+        document.getElementById("newRequestBtn")?.addEventListener("click", () => openRequestModal());
+        
+        document.querySelectorAll("#requestsTabs .nav-link").forEach(btn => {
+            btn.addEventListener("click", () => {
+                document.querySelectorAll("#requestsTabs .nav-link").forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                const tab = btn.dataset.tab;
+                if (tab === "requests") loadRequests();
+                else loadDecrees();
+            });
+        });
+        
+        await loadRequests();
+    }
+    
+    async function loadRequests() {
+        const q = query(collection(db, "user_requests"), where("userId", "==", currentUser.uid), orderBy("createdAt", "desc"));
+        const snapshot = await getDocs(q);
+        let html = `<div class="alert alert-info small mb-3"><i class="bi bi-info-circle"></i> Здесь вы можете подать заявление (увольнение, отпуск, перевод и т.д.)</div>`;
+        
+        if (snapshot.empty) {
+            html += `<div class="alert alert-light">У вас пока нет поданных заявлений</div>`;
+        } else {
+            html += `<div class="table-responsive"><table class="table table-custom"><thead><th>Дата</th><th>Тип</th><th>Заголовок</th><th>Статус</th><th></th></thead><tbody>`;
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                const statuses = { "pending": "⏳ На рассмотрении", "approved": "✅ Одобрено", "rejected": "❌ Отклонено" };
+                html += `<tr data-id="${docSnap.id}" data-collection="user_requests">
+                    <td>${data.createdAt?.toDate ? new Date(data.createdAt.toDate()).toLocaleDateString() : ''}</td>
+                    <td>${getRequestTypeName(data.type)}</td>
+                    <td>${escapeHtml(data.title)}</td>
+                    <td><span class="status-badge status-${data.status === 'approved' ? 'approved' : data.status === 'rejected' ? 'rejected' : 'pending'}">${statuses[data.status] || "На рассмотрении"}</span></td>
+                    <td><button class="btn btn-sm btn-outline-custom view-request-btn" data-id="${docSnap.id}"><i class="bi bi-eye"></i></button></td>
+                </tr>`;
+            });
+            html += `</tbody>}</div>`;
+        }
+        
+        document.getElementById("requestsContent").innerHTML = html;
+        
+        document.querySelectorAll(".view-request-btn").forEach(btn => {
+            btn.addEventListener("click", async () => {
+                const id = btn.dataset.id;
+                const snap = await getDoc(doc(db, "user_requests", id));
+                if (snap.exists()) showDetailModal(snap.data());
+            });
+        });
+    }
+    
+    async function loadDecrees() {
+        const q = query(collection(db, "legal_decrees"), orderBy("createdAt", "desc"));
+        const snapshot = await getDocs(q);
+        
+        let decrees = [];
+        snapshot.forEach(docSnap => {
+            decrees.push({ id: docSnap.id, ...docSnap.data() });
+        });
+        
+        decrees = searchFilter(decrees, ['title', 'description']);
+        
+        let html = `
+            ${renderSearchBox("Поиск постановлений...")}
+            <div class="table-responsive"><table class="table table-custom"><thead><th>Дата</th><th>Название</th><th>Описание</th></thead><tbody>
+        `;
+        
+        if (decrees.length === 0) {
+            html += `<tr><td colspan="3"><div class="alert alert-light">Нет постановлений, соответствующих поиску</div></td></tr>`;
+        } else {
+            decrees.forEach(data => {
+                html += `<tr data-id="${data.id}" data-collection="legal_decrees">
+                    <td>${data.createdAt?.toDate ? new Date(data.createdAt.toDate()).toLocaleDateString() : ''}</td>
+                    <td><strong>${escapeHtml(data.title)}</strong></td>
+                    <td>${escapeHtml((data.description || '').substring(0, 100))}${(data.description || '').length > 100 ? '...' : ''}</td>
+                </tr>`;
+            });
+        }
+        
+        html += `</tbody>}</div>`;
+        document.getElementById("requestsContent").innerHTML = html;
+        
+        attachSearchListener(() => loadDecrees());
+        
+        document.querySelectorAll("#requestsContent tbody tr").forEach(tr => {
+            tr.addEventListener("click", async () => {
+                const id = tr.dataset.id;
+                const snap = await getDoc(doc(db, "legal_decrees", id));
+                if (snap.exists()) showDetailModal(snap.data());
+            });
+        });
+    }
+    
+    function getRequestTypeName(type) {
+        const types = {
+            "resignation": "Увольнение по собственному желанию",
+            "vacation": "Отпуск",
+            "transfer": "Перевод",
+            "other": "Другое"
+        };
+        return types[type] || type;
+    }
+    
+    async function openRequestModal(editId = null, editData = null) {
+        const modal = new bootstrap.Modal(document.getElementById("requestModal"));
+        document.getElementById("requestModalTitle").innerText = editId ? "Редактировать заявление" : "Новое заявление";
+        
+        if (editData) {
+            document.getElementById("requestType").value = editData.type || "resignation";
+            document.getElementById("requestTitle").value = editData.title || "";
+            document.getElementById("requestContent").value = editData.content || "";
+        } else {
+            document.getElementById("requestType").value = "resignation";
+            document.getElementById("requestTitle").value = "";
+            document.getElementById("requestContent").value = "";
+        }
+        
+        document.getElementById("saveRequestBtn").onclick = async () => {
+            const type = document.getElementById("requestType").value;
+            const title = document.getElementById("requestTitle").value.trim();
+            const content = document.getElementById("requestContent").value.trim();
+            
+            if (!title || !content) {
+                alert("Заполните заголовок и текст заявления");
+                return;
+            }
+            
+            if (editId) {
+                await updateDoc(doc(db, "user_requests", editId), {
+                    type, title, content, updatedAt: new Date()
+                });
+            } else {
+                await addDoc(collection(db, "user_requests"), {
+                    userId: currentUser.uid,
+                    userDisplayName: currentUserDisplayName,
+                    type, title, content,
+                    status: "pending",
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                });
+            }
+            
+            modal.hide();
+            renderRequestsAndDecrees();
+        };
+        
+        modal.show();
+    }
+
     // ========== ЭКОНОМИКА ==========
     let currentBudgetState = { total: 0, docId: null };
     
@@ -758,6 +929,7 @@
                 ${canEditEconomy() ? '<button class="btn btn-custom btn-sm" id="createNewBtn">+ Добавить операцию</button>' : ''}
             </div>
             <div id="budgetWidgetContainer"></div>
+            ${renderSearchBox("Поиск по назначению...")}
             <div id="recordsList">Загрузка...</div>
         `;
         document.getElementById("dynamicContent").innerHTML = html;
@@ -821,34 +993,38 @@
             if (!recordsDiv) return;
             
             let income = 0, expense = 0;
-            if (snapshot.empty) { 
-                recordsDiv.innerHTML = "<div class='alert alert-light'>Нет операций</div>"; 
+            let items = [];
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                if (data.type === "income") income += Number(data.amount) || 0;
+                if (data.type === "expense") expense += Number(data.amount) || 0;
+                items.push({ id: docSnap.id, ...data });
+            });
+            
+            items = searchFilter(items, ['purpose']);
+            
+            if (items.length === 0) { 
+                recordsDiv.innerHTML = "<div class='alert alert-light'>Нет операций, соответствующих поиску</div>"; 
             } else {
                 let table = `<table class="table table-custom table-hover"><thead><th>Тип</th><th>Сумма</th><th>Назначение</th><th>Дата</th><th style="width:90px">Действия</th></thead><tbody>`;
-                snapshot.forEach(docSnap => {
-                    const data = docSnap.data();
-                    const id = docSnap.id;
-                    if (data.type === "income") income += Number(data.amount) || 0;
-                    if (data.type === "expense") expense += Number(data.amount) || 0;
-                    table += `<tr data-id="${id}" data-collection="economy_budget" data-type="budget">
+                items.forEach(data => {
+                    table += `<tr data-id="${data.id}" data-collection="economy_budget" data-type="budget">
                                 <td><span class="badge ${data.type === 'income' ? 'bg-success' : 'bg-danger'}">${data.type === 'income' ? 'Приход' : 'Расход'}</span></td>
                                 <td>${data.amount || 0} ₽</span></td>
                                 <td><span title="${data.purpose || ''}">${(data.purpose || '').substring(0, 40)}${(data.purpose || '').length > 40 ? '...' : ''}</span></td>
                                 <td>${data.createdAt?.toDate ? new Date(data.createdAt.toDate()).toLocaleDateString() : ""}</span></td>
-                                <td>${canEditEconomy() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${id}" data-collection="economy_budget" data-type="budget"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${id}" data-collection="economy_budget"><i class="bi bi-trash"></i></button>` : '—'}</span></td>
+                                <td>${canEditEconomy() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${data.id}" data-collection="economy_budget" data-type="budget"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${data.id}" data-collection="economy_budget"><i class="bi bi-trash"></i></button>` : '—'}</td>
                               </tr>`;
                 });
                 table += `</tbody>}</div>`;
                 recordsDiv.innerHTML = table;
                 attachTableEvents("recordsList", "economy_budget", canEditEconomy());
+                attachSearchListener(() => renderEconomy(currentSub));
             }
             updateWidget(income, expense);
         });
         
         if (canEditEconomy()) document.getElementById("createNewBtn")?.addEventListener("click", () => openCreateModal("economy_budget", "budget"));
-        
-        const { income, expense } = await recalcBudgetTotals();
-        updateWidget(income, expense);
     }
 
     async function renderEconomy(sub) {
@@ -876,7 +1052,9 @@
         
         const colRef = collection(db, collections[sub]);
         let html = `<div class="subnav">${Object.keys(subTitles).map(s => `<button class="subnav-btn ${currentSub === s ? 'active' : ''}" data-sub="${s}">${subTitles[s]}</button>`).join('')}</div>`;
-        html += `<div class="d-flex justify-content-between align-items-center mb-3"><h5>${subTitles[sub]}</h5>${canEditEconomy() ? '<button class="btn btn-custom btn-sm" id="createNewBtn">+ Добавить</button>' : ''}</div><div id="recordsList">Загрузка...</div>`;
+        html += `<div class="d-flex justify-content-between align-items-center mb-3"><h5>${subTitles[sub]}</h5>${canEditEconomy() ? '<button class="btn btn-custom btn-sm" id="createNewBtn">+ Добавить</button>' : ''}</div>`;
+        html += renderSearchBox(sub === "businesses" ? "Поиск по названию или директору..." : "Поиск по названию или контрагенту...");
+        html += `<div id="recordsList">Загрузка...</div>`;
         document.getElementById("dynamicContent").innerHTML = html;
         document.querySelectorAll(".subnav-btn").forEach(btn => btn.addEventListener("click", () => { currentSub = btn.dataset.sub; renderEconomy(currentSub); }));
         
@@ -885,7 +1063,6 @@
                 const recordsDiv = document.getElementById("recordsList");
                 if (!recordsDiv) return;
                 
-                // Создаем отчеты для новых бизнесов
                 for (const docSnap of snapshot.docs) {
                     const business = docSnap.data();
                     const businessId = docSnap.id;
@@ -905,42 +1082,53 @@
                     }
                 }
                 
-                if (snapshot.empty) { recordsDiv.innerHTML = "<div class='alert alert-light'>Нет записей</div>"; return; }
-                let table = `<table class="table table-custom table-hover"><thead><th>Название бизнеса</th><th>Директор</th><th>ID Карта</th><th>Почта</th><th style="width:90px">Действия</th></thead><tbody>`;
+                let items = [];
                 snapshot.forEach(docSnap => {
-                    const data = docSnap.data();
-                    const id = docSnap.id;
-                    table += `<tr data-id="${id}" data-collection="economy_businesses" data-type="businesses">
+                    items.push({ id: docSnap.id, ...docSnap.data() });
+                });
+                items = searchFilter(items, ['businessName', 'director']);
+                
+                if (items.length === 0) { recordsDiv.innerHTML = "<div class='alert alert-light'>Нет записей, соответствующих поиску</div>"; return; }
+                let table = `<table class="table table-custom table-hover"><thead><th>Название бизнеса</th><th>Директор</th><th>ID Карта</th><th>Почта</th><th style="width:90px">Действия</th></thead><tbody>`;
+                items.forEach(data => {
+                    table += `<tr data-id="${data.id}" data-collection="economy_businesses" data-type="businesses">
                                 <td><span title="${data.businessName || ''}">${(data.businessName || '').substring(0, 40)}${(data.businessName || '').length > 40 ? '...' : ''}</span></td>
                                 <td><span title="${data.director || ''}">${(data.director || '').substring(0, 30)}${(data.director || '').length > 30 ? '...' : ''}</span></td>
                                 <td><span class="id-card-badge" title="${data.idCard || ''}">${(data.idCard || '').substring(0, 20)}${(data.idCard || '').length > 20 ? '...' : ''}</span></td>
                                 <td><span title="${data.emailId || ''}">${(data.emailId || '').substring(0, 25)}${(data.emailId || '').length > 25 ? '...' : ''}</span></td>
-                                <td>${canEditEconomy() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${id}" data-collection="economy_businesses" data-type="businesses"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${id}" data-collection="economy_businesses"><i class="bi bi-trash"></i></button>` : '—'}</td>
+                                <td>${canEditEconomy() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${data.id}" data-collection="economy_businesses" data-type="businesses"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${data.id}" data-collection="economy_businesses"><i class="bi bi-trash"></i></button>` : '—'}</td>
                               </tr>`;
                 });
                 table += `</tbody>}</div>`;
                 recordsDiv.innerHTML = table;
                 attachTableEvents("recordsList", "economy_businesses", canEditEconomy());
+                attachSearchListener(() => renderEconomy(currentSub));
             });
         } else {
             onSnapshot(query(colRef, orderBy("createdAt", "desc")), (snapshot) => {
                 const recordsDiv = document.getElementById("recordsList");
                 if (!recordsDiv) return;
-                if (snapshot.empty) { recordsDiv.innerHTML = "<div class='alert alert-light'>Нет записей</div>"; return; }
-                let table = `<table class="table table-custom table-hover"><thead><th>Название договора</th><th>Контрагент</th><th>Сумма</th><th style="width:90px">Действия</th></thead><tbody>`;
+                
+                let items = [];
                 snapshot.forEach(docSnap => {
-                    const data = docSnap.data();
-                    const id = docSnap.id;
-                    table += `<tr data-id="${id}" data-collection="economy_contracts" data-type="contracts">
+                    items.push({ id: docSnap.id, ...docSnap.data() });
+                });
+                items = searchFilter(items, ['name', 'partner']);
+                
+                if (items.length === 0) { recordsDiv.innerHTML = "<div class='alert alert-light'>Нет записей, соответствующих поиску</div>"; return; }
+                let table = `<table class="table table-custom table-hover"><thead><th>Название договора</th><th>Контрагент</th><th>Сумма</th><th style="width:90px">Действия</th></thead><tbody>`;
+                items.forEach(data => {
+                    table += `<tr data-id="${data.id}" data-collection="economy_contracts" data-type="contracts">
                                 <td><span title="${data.name || ''}">${(data.name || '').substring(0, 40)}${(data.name || '').length > 40 ? '...' : ''}</span></td>
                                 <td><span title="${data.partner || ''}">${(data.partner || '').substring(0, 30)}${(data.partner || '').length > 30 ? '...' : ''}</span></td>
                                 <td>${data.amount || ""} ₽</span></td>
-                                <td>${canEditEconomy() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${id}" data-collection="economy_contracts" data-type="contracts"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${id}" data-collection="economy_contracts"><i class="bi bi-trash"></i></button>` : '—'}</td>
+                                <td>${canEditEconomy() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${data.id}" data-collection="economy_contracts" data-type="contracts"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${data.id}" data-collection="economy_contracts"><i class="bi bi-trash"></i></button>` : '—'}</td>
                               </tr>`;
                 });
                 table += `</tbody>}</div>`;
                 recordsDiv.innerHTML = table;
                 attachTableEvents("recordsList", "economy_contracts", canEditEconomy());
+                attachSearchListener(() => renderEconomy(currentSub));
             });
         }
         
@@ -949,125 +1137,478 @@
         }
     }
 
-    // ========== ЖАЛОБЫ ==========
-    async function renderComplaints() {
-        const colRef = collection(db, "complaints");
-        let html = `<div class="d-flex justify-content-between align-items-center mb-3"><h5><i class="bi bi-exclamation-triangle"></i> Жалобы и обращения</h5>${canManageComplaints() ? '<button class="btn btn-custom btn-sm" id="createComplaintBtn">+ Добавить жалобу</button>' : ''}</div><div id="complaintsList">Загрузка...</div>`;
-        document.getElementById("dynamicContent").innerHTML = html;
-        onSnapshot(query(colRef, orderBy("createdAt", "desc")), (snapshot) => {
-            const recordsDiv = document.getElementById("complaintsList");
-            if (!recordsDiv) return;
-            if (snapshot.empty) { recordsDiv.innerHTML = "<div class='alert alert-light'>Нет жалоб</div>"; return; }
-            let table = `<table class="table table-custom table-hover"><thead><th>Заголовок</th><th>От кого</th><th>Статус</th><th style="width:90px">Действия</th></thead><tbody>`;
-            snapshot.forEach(docSnap => {
-                const data = docSnap.data();
-                const id = docSnap.id;
-                const statuses = { "new": "🆕 Новая", "processing": "⚙️ В работе", "resolved": "✅ Решена", "rejected": "❌ Отклонена" };
-                let statusClass = data.status === "resolved" ? "approved" : data.status === "rejected" ? "rejected" : data.status === "processing" ? "hearing" : "pending";
-                table += `<tr data-id="${id}" data-collection="complaints" data-type="complaint">
-                            <td><span title="${data.title || ''}">${(data.title || '').substring(0, 50)}${(data.title || '').length > 50 ? '...' : ''}</span></td>
-                            <td><span title="${data.author || ''}">${(data.author || '').substring(0, 30)}${(data.author || '').length > 30 ? '...' : ''}</span></td>
-                            <td><span class="status-badge status-${statusClass}">${statuses[data.status] || "Новая"}</span></td>
-                            <td>${canManageComplaints() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${id}" data-collection="complaints" data-type="complaint"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${id}" data-collection="complaints"><i class="bi bi-trash"></i></button>` : '—'}</td>
-                          </tr>`;
-            });
-            table += `</tbody></table>`;
-            recordsDiv.innerHTML = table;
-            attachTableEvents("complaintsList", "complaints", canManageComplaints());
-        });
-        if (canManageComplaints()) document.getElementById("createComplaintBtn")?.addEventListener("click", () => openComplaintModal());
-    }
-
-    async function openComplaintModal(editId = null, editData = null) {
-        const modal = new bootstrap.Modal(document.getElementById("entryModal"));
-        const isEdit = !!editId;
-        document.getElementById("modalTitle").innerText = isEdit ? "Редактировать жалобу" : "Новая жалоба";
-        let statusSelect = '';
-        if (canManageComplaints()) {
-            statusSelect = `<select class="form-select mb-2" id="status"><option value="new" ${editData?.status === 'new' ? 'selected' : ''}>Новая</option><option value="processing" ${editData?.status === 'processing' ? 'selected' : ''}>В работе</option><option value="resolved" ${editData?.status === 'resolved' ? 'selected' : ''}>Решена</option><option value="rejected" ${editData?.status === 'rejected' ? 'selected' : ''}>Отклонена</option></select>`;
-        } else {
-            statusSelect = `<input type="hidden" id="status" value="new">`;
-        }
-        const specificFields = `
-            <input class="form-control mb-2" id="title" placeholder="Заголовок жалобы" value="${escapeHtml(editData?.title || '')}">
-            <input class="form-control mb-2" id="author" placeholder="От кого (ФИО)" value="${escapeHtml(editData?.author || currentUserDisplayName || '')}">
-            ${statusSelect}
-        `;
-        const common = `<textarea class="form-control mb-2" id="description" rows="3" placeholder="Суть жалобы">${escapeHtml(editData?.description || "")}</textarea>
-                        <hr><label>Изображения:</label>
-                        <div class="mb-2"><input type="file" id="imageUploads" multiple class="form-control" accept="image/*"><small>Загрузить файлы</small></div>
-                        <div class="mb-2"><input type="text" id="imageUrlInput" class="form-control" placeholder="URL изображения"><button type="button" id="addImageUrlBtn" class="btn btn-sm btn-outline-custom mt-1">Добавить по ссылке</button></div>
-                        <div id="tempImageUrls" class="small text-muted"></div>
-                        <hr><label>Документы:</label>
-                        <input class="form-control mb-2" id="docLinks" placeholder="Ссылки на документы (через запятую)" value="${(editData?.documents || []).join(', ')}">`;
-        document.getElementById("modalBodyForm").innerHTML = specificFields + common;
-        let imageUrls = [];
-        document.getElementById("addImageUrlBtn")?.addEventListener("click", () => {
-            const url = document.getElementById("imageUrlInput").value.trim();
-            if (url) { imageUrls.push(url); document.getElementById("tempImageUrls").innerHTML = `Добавлено ссылок: ${imageUrls.length}`; document.getElementById("imageUrlInput").value = ""; }
-            else alert("Введите URL");
-        });
-        document.getElementById("saveEntryBtn").onclick = async () => {
-            let newData = { createdAt: new Date() };
-            const fields = ["title","author","status","description"];
-            fields.forEach(f => { if(document.getElementById(f)) newData[f] = document.getElementById(f).value; });
-            const files = document.getElementById("imageUploads")?.files;
-            let urls = [];
-            if(files) for(let f of files) { let url = await uploadImageToImgbb(f); if(url) urls.push(url); }
-            urls.push(...imageUrls);
-            if(urls.length) newData.images = urls;
-            if(document.getElementById("docLinks")) newData.documents = document.getElementById("docLinks")?.value.split(",").map(s=>s.trim()) || [];
-            if (isEdit) {
-                await updateDoc(doc(db, "complaints", editId), newData);
-            } else {
-                await addDoc(collection(db, "complaints"), newData);
-            }
-            modal.hide();
-        };
-        modal.show();
-    }
-
-    // ========== ЮРИДИЧЕСКИЙ ==========
+    // ========== АМНИСТИЯ С ИСТОРИЕЙ ==========
     async function renderLegal(sub) {
         const subTitles = { amnesty: "Амнистия", laws: "Законы", decrees: "Постановления и указы" };
         const collections = { amnesty: "legal_amnesty", laws: "legal_laws", decrees: "legal_decrees" };
-        const colRef = collection(db, collections[sub]);
+        
         let html = `<div class="subnav">${Object.keys(subTitles).map(s => `<button class="subnav-btn ${currentSub === s ? 'active' : ''}" data-sub="${s}">${subTitles[s]}</button>`).join('')}</div>`;
-        html += `<div class="d-flex justify-content-between align-items-center mb-3"><h5><i class="bi bi-gavel me-2"></i>${subTitles[sub]}</h5>${canEditLegal() ? '<button class="btn btn-custom btn-sm" id="createNewBtn">+ Добавить</button>' : ''}</div><div id="recordsList">Загрузка...</div>`;
+        html += `<div class="d-flex justify-content-between align-items-center mb-3"><h5><i class="bi bi-gavel me-2"></i>${subTitles[sub]}</h5>${canEditLegal() ? '<button class="btn btn-custom btn-sm" id="createNewBtn">+ Добавить</button>' : ''}</div>`;
+        html += renderSearchBox("Поиск по названию или описанию...");
+        html += `<div id="recordsList">Загрузка...</div>`;
         document.getElementById("dynamicContent").innerHTML = html;
         document.querySelectorAll(".subnav-btn").forEach(btn => btn.addEventListener("click", () => { currentSub = btn.dataset.sub; renderLegal(currentSub); }));
-        onSnapshot(query(colRef, orderBy("createdAt", "desc")), (snapshot) => {
+        
+        onSnapshot(query(collection(db, collections[sub]), orderBy("createdAt", "desc")), (snapshot) => {
             const recordsDiv = document.getElementById("recordsList");
             if (!recordsDiv) return;
-            if (snapshot.empty) { recordsDiv.innerHTML = "<div class='alert alert-light'>Нет записей</div>"; return; }
+            
+            let items = [];
+            snapshot.forEach(docSnap => {
+                items.push({ id: docSnap.id, ...docSnap.data() });
+            });
+            items = searchFilter(items, ['title', 'description']);
+            
+            if (items.length === 0) { recordsDiv.innerHTML = "<div class='alert alert-light'>Нет записей, соответствующих поиску</div>"; return; }
             let table = `<table class="table table-custom table-hover"><thead>`;
             if (sub === "amnesty") {
-                table += `<th>Название</th><th>Описание</th><th>Статус</th><th style="width:90px">Действия</th>`;
+                table += `<th>Название</th><th>Описание</th><th>Статус</th><th style="width:120px">Действия</th>`;
             } else {
-                table += `<th>Название</th><th>Описание</th><th style="width:90px">Действия</th>`;
+                table += `<th>Название</th><th>Описание</th><th style="width:120px">Действия</th>`;
             }
             table += `</thead><tbody>`;
-            snapshot.forEach(docSnap => {
-                const data = docSnap.data();
-                const id = docSnap.id;
-                table += `<tr data-id="${id}" data-collection="${collections[sub]}" data-type="${sub}">`;
+            items.forEach(data => {
+                table += `<tr data-id="${data.id}" data-collection="${collections[sub]}" data-type="${sub}">`;
                 if (sub === "amnesty") {
                     const statuses = { "check": "Проверка", "hearing": "Ожидает слушания", "rejected": "Отказано", "approved": "Одобрено" };
                     let statusClass = data.status === "approved" ? "approved" : data.status === "rejected" ? "rejected" : data.status === "hearing" ? "hearing" : "pending";
                     table += `<td><span title="${data.title || ''}">${(data.title || '').substring(0, 40)}${(data.title || '').length > 40 ? '...' : ''}</span>`;
                     table += `<td><span title="${data.description || ''}">${(data.description || '').substring(0, 60)}${(data.description || '').length > 60 ? '...' : ''}</span>`;
                     table += `<td><span class="status-badge status-${statusClass}">${statuses[data.status] || "Проверка"}</span>`;
+                    table += `<td><div class="d-flex gap-1 flex-wrap">`;
+                    if (canEditLegal()) {
+                        table += `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${data.id}" data-collection="${collections[sub]}" data-type="${sub}"><i class="bi bi-pencil"></i></button>`;
+                        table += `<button class="btn btn-sm btn-outline-custom add-history-btn" data-id="${data.id}" data-collection="${collections[sub]}"><i class="bi bi-plus-circle"></i> Доп.</button>`;
+                        table += `<button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${data.id}" data-collection="${collections[sub]}"><i class="bi bi-trash"></i></button>`;
+                    } else {
+                        table += `—`;
+                    }
+                    table += `</div></span>`;
                 } else {
                     table += `<td><span title="${data.title || ''}">${(data.title || '').substring(0, 40)}${(data.title || '').length > 40 ? '...' : ''}</span>`;
                     table += `<td><span title="${data.description || ''}">${(data.description || '').substring(0, 80)}${(data.description || '').length > 80 ? '...' : ''}</span>`;
+                    table += `<td>${canEditLegal() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${data.id}" data-collection="${collections[sub]}" data-type="${sub}"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${data.id}" data-collection="${collections[sub]}"><i class="bi bi-trash"></i></button>` : '—'}</span>`;
                 }
-                table += `<td>${canEditLegal() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${id}" data-collection="${collections[sub]}" data-type="${sub}"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${id}" data-collection="${collections[sub]}"><i class="bi bi-trash"></i></button>` : '—'}</span></td>`;
+                table += `<tr>`;
+            });
+            table += `</tbody>}</div>`;
+            recordsDiv.innerHTML = table;
+            attachTableEvents("recordsList", collections[sub], canEditLegal());
+            attachSearchListener(() => renderLegal(currentSub));
+            
+            document.querySelectorAll(".add-history-btn").forEach(btn => {
+                btn.addEventListener("click", async (e) => {
+                    e.stopPropagation();
+                    const id = btn.dataset.id;
+                    const collectionName = btn.dataset.collection;
+                    const snap = await getDoc(doc(db, collectionName, id));
+                    if (snap.exists()) {
+                        openAmnestyHistoryModal(id, collectionName, snap.data());
+                    }
+                });
+            });
+        });
+        
+        if (canEditLegal()) document.getElementById("createNewBtn")?.addEventListener("click", () => openCreateModal(collections[sub], sub));
+    }
+    
+    async function openAmnestyHistoryModal(docId, collectionName, existingData) {
+        const modal = new bootstrap.Modal(document.getElementById("entryModal"));
+        document.getElementById("modalTitle").innerHTML = `<i class="bi bi-pencil-square"></i> Дополнить дело: ${escapeHtml(existingData.title || '')}`;
+        
+        let historyHtml = '';
+        if (existingData.history && existingData.history.length > 0) {
+            historyHtml = `
+                <hr>
+                <label><i class="bi bi-clock-history"></i> История изменений:</label>
+                <div class="border rounded p-2 bg-light" style="max-height: 150px; overflow-y: auto; font-size: 0.75rem;">
+                    ${existingData.history.map(h => `
+                        <div class="mb-2 pb-2 border-bottom">
+                            <div class="text-muted small">📅 ${h.date}</div>
+                            <div>${escapeHtml(h.content)}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        const modalBody = `
+            <div class="mb-3">
+                <label><i class="bi bi-file-text"></i> Текущее описание</label>
+                <div class="border rounded p-2 bg-light" style="max-height: 150px; overflow-y: auto;">
+                    ${escapeHtml(existingData.description || '')}
+                </div>
+            </div>
+            <div class="mb-3">
+                <label><i class="bi bi-plus-circle"></i> Добавить новую запись</label>
+                <textarea id="historyAddition" class="form-control" rows="6" placeholder="Введите новую запись..."></textarea>
+            </div>
+            ${historyHtml}
+            <hr>
+            <div class="alert alert-info small">
+                <i class="bi bi-lightbulb"></i> <strong>Важно:</strong> Новая запись будет добавлена в историю с указанием даты и времени.
+            </div>
+        `;
+        
+        document.getElementById("modalBodyForm").innerHTML = modalBody;
+        
+        document.getElementById("saveEntryBtn").onclick = async () => {
+            const newContent = document.getElementById("historyAddition").value.trim();
+            if (!newContent) {
+                alert("Введите текст для добавления");
+                return;
+            }
+            
+            const now = new Date();
+            const dateStr = now.toLocaleString('ru-RU');
+            
+            const historyEntry = {
+                date: dateStr,
+                content: newContent
+            };
+            const history = [...(existingData.history || []), historyEntry];
+            
+            await updateDoc(doc(db, collectionName, docId), {
+                history: history,
+                updatedAt: new Date(),
+                updatedBy: currentUser.uid
+            });
+            
+            modal.hide();
+            renderLegal(currentSub);
+        };
+        
+        modal.show();
+    }
+
+    // ========== ЖАЛОБЫ ==========
+    async function renderComplaints() {
+        const colRef = collection(db, "complaints");
+        let html = `<div class="d-flex justify-content-between align-items-center mb-3"><h5><i class="bi bi-exclamation-triangle"></i> Жалобы и обращения</h5>${canManageComplaints() ? '<button class="btn btn-custom btn-sm" id="createComplaintBtn">+ Добавить жалобу</button>' : ''}</div>`;
+        html += renderSearchBox("Поиск по заголовку или автору...");
+        html += `<div id="complaintsList">Загрузка...</div>`;
+        document.getElementById("dynamicContent").innerHTML = html;
+        
+        onSnapshot(query(colRef, orderBy("createdAt", "desc")), (snapshot) => {
+            const recordsDiv = document.getElementById("complaintsList");
+            if (!recordsDiv) return;
+            
+            let items = [];
+            snapshot.forEach(docSnap => {
+                items.push({ id: docSnap.id, ...docSnap.data() });
+            });
+            items = searchFilter(items, ['title', 'author']);
+            
+            if (items.length === 0) { recordsDiv.innerHTML = "<div class='alert alert-light'>Нет жалоб, соответствующих поиску</div>"; return; }
+            let table = `<table class="table table-custom table-hover"><thead><th>Заголовок</th><th>От кого</th><th>Статус</th><th style="width:90px">Действия</th></thead><tbody>`;
+            items.forEach(data => {
+                const statuses = { "new": "🆕 Новая", "processing": "⚙️ В работе", "resolved": "✅ Решена", "rejected": "❌ Отклонена" };
+                let statusClass = data.status === "resolved" ? "approved" : data.status === "rejected" ? "rejected" : data.status === "processing" ? "hearing" : "pending";
+                table += `<tr data-id="${data.id}" data-collection="complaints" data-type="complaint">
+                            <td><span title="${data.title || ''}">${(data.title || '').substring(0, 50)}${(data.title || '').length > 50 ? '...' : ''}</span></td>
+                            <td><span title="${data.author || ''}">${(data.author || '').substring(0, 30)}${(data.author || '').length > 30 ? '...' : ''}</span></td>
+                            <td><span class="status-badge status-${statusClass}">${statuses[data.status] || "Новая"}</span></td>
+                            <td>${canManageComplaints() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${data.id}" data-collection="complaints" data-type="complaint"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${data.id}" data-collection="complaints"><i class="bi bi-trash"></i></button>` : '—'}</td>
+                          </tr>`;
             });
             table += `</tbody></table>`;
             recordsDiv.innerHTML = table;
-            attachTableEvents("recordsList", collections[sub], canEditLegal());
+            attachTableEvents("complaintsList", "complaints", canManageComplaints());
+            attachSearchListener(() => renderComplaints());
         });
-        if (canEditLegal()) document.getElementById("createNewBtn")?.addEventListener("click", () => openCreateModal(collections[sub], sub));
+        if (canManageComplaints()) document.getElementById("createComplaintBtn")?.addEventListener("click", () => openComplaintModal());
+    }
+
+    // ========== УНИВЕРСАЛЬНАЯ ФОРМА С УПРАВЛЕНИЕМ ИЗОБРАЖЕНИЯМИ ==========
+    let modalTempImages = [];
+    let modalExistingImages = [];
+    let modalCurrentImages = [];
+    let modalIsEdit = false;
+    let modalDocId = null;
+    let modalCollectionName = null;
+    
+    async function openCreateModal(collectionName, type) {
+        if (collectionName === "complaints") {
+            openComplaintModal();
+            return;
+        }
+        
+        modalIsEdit = false;
+        modalDocId = null;
+        modalCollectionName = collectionName;
+        modalExistingImages = [];
+        modalTempImages = [];
+        modalCurrentImages = [];
+        
+        const modal = new bootstrap.Modal(document.getElementById("entryModal"));
+        let specificFields = "";
+        if (type === "contracts") specificFields = `<input class="form-control mb-2" id="name" placeholder="Название договора"><input class="form-control mb-2" id="partner" placeholder="Контрагент"><input class="form-control mb-2" id="amount" placeholder="Сумма">`;
+        else if (type === "businesses") specificFields = `<input class="form-control mb-2" id="businessName" placeholder="Название бизнеса"><input class="form-control mb-2" id="director" placeholder="Директор"><input class="form-control mb-2" id="idCard" placeholder="ID Карта"><input class="form-control mb-2" id="emailId" placeholder="Почта-идентификатор">`;
+        else if (type === "budget") specificFields = `<select class="form-select mb-2" id="type"><option value="income">Приход</option><option value="expense">Расход</option></select><input class="form-control mb-2" id="amount" placeholder="Сумма"><input class="form-control mb-2" id="purpose" placeholder="Назначение">`;
+        else if (type === "amnesty") specificFields = `<input class="form-control mb-2" id="title" placeholder="Название дела"><select class="form-select mb-2" id="status"><option value="check">Проверка материалов</option><option value="hearing">Ожидает слушания</option><option value="rejected">Отказано</option><option value="approved">Одобрено</option></select>`;
+        else if (type === "laws" || type === "decrees") specificFields = `<input class="form-control mb-2" id="title" placeholder="Название">`;
+        else if (type === "employed" || type === "candidates") specificFields = `<input class="form-control mb-2" id="fio" placeholder="ФИО"><input class="form-control mb-2" id="idCard" placeholder="ID Карта"><input class="form-control mb-2" id="position" placeholder="Должность"><input class="form-control mb-2" id="photo" placeholder="Ссылка на фото (URL)"><select class="form-select mb-2" id="status"><option value="pending">На проверке</option><option value="approved">Принят</option><option value="rejected">Отказ</option></select>`;
+        else specificFields = `<input class="form-control mb-2" id="title" placeholder="Название">`;
+        
+        const modalBody = `
+            ${specificFields}
+            <textarea class="form-control mb-2" id="description" rows="3" placeholder="Полное описание"></textarea>
+            <div class="mb-3">
+                <label><i class="bi bi-images"></i> Изображения</label>
+                <div class="mb-2">
+                    <input type="file" id="imageUploads" multiple class="form-control" accept="image/*">
+                    <small class="text-muted">Можно выбрать несколько файлов одновременно</small>
+                </div>
+                <div class="mb-2">
+                    <input type="text" id="imageUrlInput" class="form-control" placeholder="URL изображения">
+                    <button type="button" id="addImageUrlBtn" class="btn btn-sm btn-outline-custom mt-1"><i class="bi bi-plus-lg"></i> Добавить по ссылке</button>
+                </div>
+                <div id="imagePreviewArea" class="img-thumb-list"></div>
+            </div>
+            <hr>
+            <label>Документы:</label>
+            <input class="form-control mb-2" id="docLinks" placeholder="Ссылки на документы (через запятую)">
+        `;
+        
+        document.getElementById("modalBodyForm").innerHTML = modalBody;
+        document.getElementById("modalTitle").innerText = "Создать запись";
+        
+        updateImagePreviewForModal();
+        
+        document.getElementById("addImageUrlBtn").addEventListener("click", () => {
+            const url = document.getElementById("imageUrlInput").value.trim();
+            if (url) {
+                modalCurrentImages.push(url);
+                updateImagePreviewForModal();
+                document.getElementById("imageUrlInput").value = "";
+            } else {
+                alert("Введите URL");
+            }
+        });
+        
+        document.getElementById("imageUploads").addEventListener("change", async (e) => {
+            const files = Array.from(e.target.files);
+            if (files.length > 0) {
+                const newUrls = await uploadMultipleImages(files);
+                modalCurrentImages.push(...newUrls);
+                updateImagePreviewForModal();
+                document.getElementById("imageUploads").value = "";
+            }
+        });
+        
+        document.getElementById("saveEntryBtn").onclick = async () => {
+            let newData = { createdAt: new Date() };
+            const fields = ["name","partner","amount","businessName","director","idCard","emailId","type","purpose","title","status","fio","position","photo","description"];
+            fields.forEach(f => { if(document.getElementById(f)) newData[f] = document.getElementById(f).value; });
+            
+            if (modalCurrentImages.length) newData.images = modalCurrentImages;
+            if (document.getElementById("docLinks")) newData.documents = document.getElementById("docLinks")?.value.split(",").map(s=>s.trim()) || [];
+            
+            await addDoc(collection(db, collectionName), newData);
+            modal.hide();
+        };
+        
+        modal.show();
+    }
+    
+    async function openEditModal(collectionName, docId, type) {
+        const snap = await getDoc(doc(db, collectionName, docId));
+        if(!snap.exists()) return;
+        const data = snap.data();
+        
+        if (collectionName === "complaints") {
+            openComplaintModal(docId, data);
+            return;
+        }
+        
+        modalIsEdit = true;
+        modalDocId = docId;
+        modalCollectionName = collectionName;
+        modalExistingImages = data.images || [];
+        modalCurrentImages = [...modalExistingImages];
+        
+        const modal = new bootstrap.Modal(document.getElementById("entryModal"));
+        let specificFields = "";
+        if (type === "contracts") specificFields = `<input class="form-control mb-2" id="name" value="${escapeHtml(data.name || '')}"><input class="form-control mb-2" id="partner" value="${escapeHtml(data.partner || '')}"><input class="form-control mb-2" id="amount" value="${escapeHtml(data.amount || '')}">`;
+        else if (type === "businesses") specificFields = `<input class="form-control mb-2" id="businessName" value="${escapeHtml(data.businessName || '')}"><input class="form-control mb-2" id="director" value="${escapeHtml(data.director || '')}"><input class="form-control mb-2" id="idCard" value="${escapeHtml(data.idCard || '')}"><input class="form-control mb-2" id="emailId" value="${escapeHtml(data.emailId || '')}">`;
+        else if (type === "budget") specificFields = `<select class="form-select mb-2" id="type"><option ${data.type==='income'?'selected':''} value="income">Приход</option><option ${data.type==='expense'?'selected':''} value="expense">Расход</option></select><input class="form-control mb-2" id="amount" value="${escapeHtml(data.amount || '')}"><input class="form-control mb-2" id="purpose" value="${escapeHtml(data.purpose || '')}">`;
+        else if (type === "amnesty") specificFields = `<input class="form-control mb-2" id="title" value="${escapeHtml(data.title || '')}"><select class="form-select mb-2" id="status"><option ${data.status==='check'?'selected':''} value="check">Проверка</option><option ${data.status==='hearing'?'selected':''} value="hearing">Ожидает слушания</option><option ${data.status==='rejected'?'selected':''} value="rejected">Отказано</option><option ${data.status==='approved'?'selected':''} value="approved">Одобрено</option></select>`;
+        else if (type === "laws" || type === "decrees") specificFields = `<input class="form-control mb-2" id="title" value="${escapeHtml(data.title || '')}">`;
+        else if (type === "employed" || type === "candidates") specificFields = `<input class="form-control mb-2" id="fio" value="${escapeHtml(data.fio || '')}"><input class="form-control mb-2" id="idCard" value="${escapeHtml(data.idCard || '')}"><input class="form-control mb-2" id="position" value="${escapeHtml(data.position || '')}"><input class="form-control mb-2" id="photo" value="${escapeHtml(data.photo || '')}"><select class="form-select mb-2" id="status"><option ${data.status==='pending'?'selected':''} value="pending">На проверке</option><option ${data.status==='approved'?'selected':''} value="approved">Принят</option><option ${data.status==='rejected'?'selected':''} value="rejected">Отказ</option></select>`;
+        else specificFields = `<input class="form-control mb-2" id="title" value="${escapeHtml(data.title || '')}">`;
+        
+        const modalBody = `
+            ${specificFields}
+            <textarea class="form-control mb-2" id="description" rows="3" placeholder="Полное описание">${escapeHtml(data.description || "")}</textarea>
+            <div class="mb-3">
+                <label><i class="bi bi-images"></i> Изображения</label>
+                <div class="mb-2">
+                    <input type="file" id="imageUploads" multiple class="form-control" accept="image/*">
+                    <small class="text-muted">Можно выбрать несколько файлов одновременно</small>
+                </div>
+                <div class="mb-2">
+                    <input type="text" id="imageUrlInput" class="form-control" placeholder="URL изображения">
+                    <button type="button" id="addImageUrlBtn" class="btn btn-sm btn-outline-custom mt-1"><i class="bi bi-plus-lg"></i> Добавить по ссылке</button>
+                </div>
+                <div id="imagePreviewArea" class="img-thumb-list"></div>
+            </div>
+            <hr>
+            <label>Документы:</label>
+            <input class="form-control mb-2" id="docLinks" value="${(data.documents || []).join(', ')}">
+        `;
+        
+        document.getElementById("modalBodyForm").innerHTML = modalBody;
+        document.getElementById("modalTitle").innerText = "Редактировать запись";
+        
+        updateImagePreviewForModal();
+        
+        document.getElementById("addImageUrlBtn").addEventListener("click", () => {
+            const url = document.getElementById("imageUrlInput").value.trim();
+            if (url) {
+                modalCurrentImages.push(url);
+                updateImagePreviewForModal();
+                document.getElementById("imageUrlInput").value = "";
+            } else {
+                alert("Введите URL");
+            }
+        });
+        
+        document.getElementById("imageUploads").addEventListener("change", async (e) => {
+            const files = Array.from(e.target.files);
+            if (files.length > 0) {
+                const newUrls = await uploadMultipleImages(files);
+                modalCurrentImages.push(...newUrls);
+                updateImagePreviewForModal();
+                document.getElementById("imageUploads").value = "";
+            }
+        });
+        
+        document.getElementById("saveEntryBtn").onclick = async () => {
+            let updateData = {};
+            const fields = ["name","partner","amount","businessName","director","idCard","emailId","type","purpose","title","status","fio","position","photo","description"];
+            fields.forEach(f => { if(document.getElementById(f)) updateData[f] = document.getElementById(f).value; });
+            
+            if (modalCurrentImages.length) updateData.images = modalCurrentImages;
+            else updateData.images = [];
+            
+            if (document.getElementById("docLinks")) updateData.documents = document.getElementById("docLinks")?.value.split(",").map(s=>s.trim()) || [];
+            
+            await updateDoc(doc(db, collectionName, docId), updateData);
+            modal.hide();
+        };
+        
+        modal.show();
+    }
+    
+    function updateImagePreviewForModal() {
+        const container = document.getElementById("imagePreviewArea");
+        if (!container) return;
+        
+        if (!modalCurrentImages || modalCurrentImages.length === 0) {
+            container.innerHTML = '<div class="text-muted small">Нет изображений</div>';
+            return;
+        }
+        
+        container.innerHTML = modalCurrentImages.map((img, idx) => `
+            <div class="img-thumb-item">
+                <img src="${img}" alt="Изображение ${idx+1}">
+                <button class="remove-img-btn" data-index="${idx}" title="Удалить"><i class="bi bi-x"></i></button>
+            </div>
+        `).join('');
+        
+        container.querySelectorAll('.remove-img-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const idx = parseInt(btn.dataset.index);
+                modalCurrentImages.splice(idx, 1);
+                updateImagePreviewForModal();
+            });
+        });
+    }
+    
+    async function openComplaintModal(editId = null, editData = null) {
+        const modal = new bootstrap.Modal(document.getElementById("entryModal"));
+        const isEdit = !!editId;
+        document.getElementById("modalTitle").innerText = isEdit ? "Редактировать жалобу" : "Новая жалоба";
+        
+        let statusSelect = '';
+        if (canManageComplaints()) {
+            statusSelect = `<select class="form-select mb-2" id="status"><option value="new" ${editData?.status === 'new' ? 'selected' : ''}>Новая</option><option value="processing" ${editData?.status === 'processing' ? 'selected' : ''}>В работе</option><option value="resolved" ${editData?.status === 'resolved' ? 'selected' : ''}>Решена</option><option value="rejected" ${editData?.status === 'rejected' ? 'selected' : ''}>Отклонена</option></select>`;
+        } else {
+            statusSelect = `<input type="hidden" id="status" value="new">`;
+        }
+        
+        modalExistingImages = editData?.images || [];
+        modalCurrentImages = [...modalExistingImages];
+        
+        const specificFields = `
+            <input class="form-control mb-2" id="title" placeholder="Заголовок жалобы" value="${escapeHtml(editData?.title || '')}">
+            <input class="form-control mb-2" id="author" placeholder="От кого (ФИО)" value="${escapeHtml(editData?.author || currentUserDisplayName || '')}">
+            ${statusSelect}
+        `;
+        
+        const modalBody = `
+            ${specificFields}
+            <textarea class="form-control mb-2" id="description" rows="3" placeholder="Суть жалобы">${escapeHtml(editData?.description || "")}</textarea>
+            <div class="mb-3">
+                <label><i class="bi bi-images"></i> Изображения</label>
+                <div class="mb-2">
+                    <input type="file" id="imageUploads" multiple class="form-control" accept="image/*">
+                    <small class="text-muted">Можно выбрать несколько файлов одновременно</small>
+                </div>
+                <div class="mb-2">
+                    <input type="text" id="imageUrlInput" class="form-control" placeholder="URL изображения">
+                    <button type="button" id="addImageUrlBtn" class="btn btn-sm btn-outline-custom mt-1"><i class="bi bi-plus-lg"></i> Добавить по ссылке</button>
+                </div>
+                <div id="imagePreviewArea" class="img-thumb-list"></div>
+            </div>
+            <hr>
+            <label>Документы:</label>
+            <input class="form-control mb-2" id="docLinks" placeholder="Ссылки на документы (через запятую)" value="${(editData?.documents || []).join(', ')}">
+        `;
+        
+        document.getElementById("modalBodyForm").innerHTML = modalBody;
+        
+        updateImagePreviewForModal();
+        
+        document.getElementById("addImageUrlBtn")?.addEventListener("click", () => {
+            const url = document.getElementById("imageUrlInput").value.trim();
+            if (url) {
+                modalCurrentImages.push(url);
+                updateImagePreviewForModal();
+                document.getElementById("imageUrlInput").value = "";
+            } else {
+                alert("Введите URL");
+            }
+        });
+        
+        document.getElementById("imageUploads")?.addEventListener("change", async (e) => {
+            const files = Array.from(e.target.files);
+            if (files.length > 0) {
+                const newUrls = await uploadMultipleImages(files);
+                modalCurrentImages.push(...newUrls);
+                updateImagePreviewForModal();
+                document.getElementById("imageUploads").value = "";
+            }
+        });
+        
+        document.getElementById("saveEntryBtn").onclick = async () => {
+            let newData = {};
+            const fields = ["title","author","status","description"];
+            fields.forEach(f => { if(document.getElementById(f)) newData[f] = document.getElementById(f).value; });
+            
+            if (modalCurrentImages.length) newData.images = modalCurrentImages;
+            if (document.getElementById("docLinks")) newData.documents = document.getElementById("docLinks")?.value.split(",").map(s=>s.trim()) || [];
+            
+            if (isEdit) {
+                await updateDoc(doc(db, "complaints", editId), newData);
+            } else {
+                newData.createdAt = new Date();
+                await addDoc(collection(db, "complaints"), newData);
+            }
+            modal.hide();
+        };
+        
+        modal.show();
     }
 
     // ========== КАДРЫ ==========
@@ -1075,32 +1616,40 @@
         if (!canEditAll()) { document.getElementById("dynamicContent").innerHTML = "<div class='alert alert-warning'>Доступ запрещён</div>"; return; }
         const subTitles = { employed: "Трудоустроенные", candidates: "Потенциальные" };
         const collections = { employed: "hr_employed", candidates: "hr_candidates" };
-        const colRef = collection(db, collections[sub]);
         let html = `<div class="subnav">${Object.keys(subTitles).map(s => `<button class="subnav-btn ${currentSub === s ? 'active' : ''}" data-sub="${s}">${subTitles[s]}</button>`).join('')}</div>`;
-        html += `<div class="d-flex justify-content-between align-items-center mb-3"><h5>${subTitles[sub]}</h5><button class="btn btn-custom btn-sm" id="createNewBtn">+ Добавить</button></div><div id="recordsList">Загрузка...</div>`;
+        html += `<div class="d-flex justify-content-between align-items-center mb-3"><h5>${subTitles[sub]}</h5><button class="btn btn-custom btn-sm" id="createNewBtn">+ Добавить</button></div>`;
+        html += renderSearchBox("Поиск по ФИО, должности или ID карте...");
+        html += `<div id="recordsList">Загрузка...</div>`;
         document.getElementById("dynamicContent").innerHTML = html;
         document.querySelectorAll(".subnav-btn").forEach(btn => btn.addEventListener("click", () => { currentSub = btn.dataset.sub; renderHR(currentSub); }));
-        onSnapshot(query(colRef, orderBy("createdAt", "desc")), (snapshot) => {
+        
+        onSnapshot(query(collection(db, collections[sub]), orderBy("createdAt", "desc")), (snapshot) => {
             const recordsDiv = document.getElementById("recordsList");
             if (!recordsDiv) return;
-            if (snapshot.empty) { recordsDiv.innerHTML = "<div class='alert alert-light'>Нет записей</div>"; return; }
-            let table = `<table class="table table-custom table-hover"><thead><th>ФИО</th><th>ID Карта</th><th>Должность</th><th>Статус</th><th style="width:90px">Действия</th></thead><tbody>`;
+            
+            let items = [];
             snapshot.forEach(docSnap => {
-                const data = docSnap.data();
-                const id = docSnap.id;
+                items.push({ id: docSnap.id, ...docSnap.data() });
+            });
+            items = searchFilter(items, ['fio', 'position', 'idCard']);
+            
+            if (items.length === 0) { recordsDiv.innerHTML = "<div class='alert alert-light'>Нет записей, соответствующих поиску</div>"; return; }
+            let table = `<table class="table table-custom table-hover"><thead><th>ФИО</th><th>ID Карта</th><th>Должность</th><th>Статус</th><th style="width:90px">Действия</th></thead><tbody>`;
+            items.forEach(data => {
                 const statuses = { "pending": "На проверке", "approved": "Принят", "rejected": "Отказ" };
                 let statusClass = data.status === "approved" ? "approved" : data.status === "rejected" ? "rejected" : "pending";
-                table += `<tr data-id="${id}" data-collection="${collections[sub]}" data-type="${sub}">
+                table += `<tr data-id="${data.id}" data-collection="${collections[sub]}" data-type="${sub}">
                             <td><span title="${data.fio || ''}">${(data.fio || '').substring(0, 40)}${(data.fio || '').length > 40 ? '...' : ''}</span></td>
                             <td><span class="id-card-badge" title="${data.idCard || ''}">${(data.idCard || '').substring(0, 20)}${(data.idCard || '').length > 20 ? '...' : ''}</span></td>
                             <td><span title="${data.position || ''}">${(data.position || '').substring(0, 30)}${(data.position || '').length > 30 ? '...' : ''}</span></td>
-                            <td><span class="status-badge status-${statusClass}">${statuses[data.status] || "На проверке"}</span><td>
-                            <td><button class="btn btn-sm btn-outline-custom editBtn" data-id="${id}" data-collection="${collections[sub]}" data-type="${sub}"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${id}" data-collection="${collections[sub]}"><i class="bi bi-trash"></i></button></td>
+                            <td><span class="status-badge status-${statusClass}">${statuses[data.status] || "На проверке"}</span></td>
+                            <td><button class="btn btn-sm btn-outline-custom editBtn" data-id="${data.id}" data-collection="${collections[sub]}" data-type="${sub}"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${data.id}" data-collection="${collections[sub]}"><i class="bi bi-trash"></i></button></td>
                           </tr>`;
             });
             table += `</tbody></table>`;
             recordsDiv.innerHTML = table;
             attachTableEvents("recordsList", collections[sub], true);
+            attachSearchListener(() => renderHR(currentSub));
         });
         document.getElementById("createNewBtn")?.addEventListener("click", () => openCreateModal(collections[sub], sub));
     }
@@ -1108,26 +1657,34 @@
     // ========== ОХРАНА ==========
     async function renderSecurity() {
         if (!canViewSecurity()) { document.getElementById("dynamicContent").innerHTML = "<div class='alert alert-warning'>Доступ запрещён</div>"; return; }
-        const colRef = collection(db, "security_rules");
-        let html = `<div class="d-flex justify-content-between align-items-center mb-3"><h5><i class="bi bi-shield-check me-2"></i>Правила и постановления охраны</h5>${canEditSecurity() ? '<button class="btn btn-custom btn-sm" id="createNewBtn">+ Добавить</button>' : ''}</div><div id="recordsList">Загрузка...</div>`;
+        let html = `<div class="d-flex justify-content-between align-items-center mb-3"><h5><i class="bi bi-shield-check me-2"></i>Правила и постановления охраны</h5>${canEditSecurity() ? '<button class="btn btn-custom btn-sm" id="createNewBtn">+ Добавить</button>' : ''}</div>`;
+        html += renderSearchBox("Поиск по названию...");
+        html += `<div id="recordsList">Загрузка...</div>`;
         document.getElementById("dynamicContent").innerHTML = html;
-        onSnapshot(query(colRef, orderBy("createdAt", "desc")), (snapshot) => {
+        
+        onSnapshot(query(collection(db, "security_rules"), orderBy("createdAt", "desc")), (snapshot) => {
             const recordsDiv = document.getElementById("recordsList");
             if (!recordsDiv) return;
-            if (snapshot.empty) { recordsDiv.innerHTML = "<div class='alert alert-light'>Нет правил</div>"; return; }
-            let table = `<table class="table table-custom table-hover"><thead><th>Название</th><th>Описание</th><th style="width:90px">Действия</th></thead><tbody>`;
+            
+            let items = [];
             snapshot.forEach(docSnap => {
-                const data = docSnap.data();
-                const id = docSnap.id;
-                table += `<tr data-id="${id}" data-collection="security_rules" data-type="security">
+                items.push({ id: docSnap.id, ...docSnap.data() });
+            });
+            items = searchFilter(items, ['title']);
+            
+            if (items.length === 0) { recordsDiv.innerHTML = "<div class='alert alert-light'>Нет правил, соответствующих поиску</div>"; return; }
+            let table = `<table class="table table-custom table-hover"><thead><th>Название</th><th>Описание</th><th style="width:90px">Действия</th></thead><tbody>`;
+            items.forEach(data => {
+                table += `<tr data-id="${data.id}" data-collection="security_rules" data-type="security">
                             <td><span title="${data.title || ''}">${(data.title || '').substring(0, 50)}${(data.title || '').length > 50 ? '...' : ''}</span></td>
                             <td><span title="${data.description || ''}">${(data.description || '').substring(0, 80)}${(data.description || '').length > 80 ? '...' : ''}</span></td>
-                            <td>${canEditSecurity() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${id}" data-collection="security_rules" data-type="security"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${id}" data-collection="security_rules"><i class="bi bi-trash"></i></button>` : '—'}</td>
+                            <td>${canEditSecurity() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${data.id}" data-collection="security_rules" data-type="security"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${data.id}" data-collection="security_rules"><i class="bi bi-trash"></i></button>` : '—'}</td>
                           </tr>`;
             });
-            table += `</tbody><tr>`;
+            table += `</tbody></table>`;
             recordsDiv.innerHTML = table;
             attachTableEvents("recordsList", "security_rules", canEditSecurity());
+            attachSearchListener(() => renderSecurity());
         });
         if (canEditSecurity()) document.getElementById("createNewBtn")?.addEventListener("click", () => openCreateModal("security_rules", "security"));
     }
@@ -1137,23 +1694,29 @@
         if (!canManageUsers()) return "<div class='alert alert-warning'>Доступ запрещён</div>";
         const usersSnap = await getDocs(collection(db, "users"));
         let html = `<div style="overflow-x: auto;">
+            ${renderSearchBox("Поиск по логину или имени...")}
             <table class="table table-custom users-table">
                 <thead><tr><th>Логин</th><th>Отображаемое имя</th><th>Роль</th><th style="text-align: center;">Действие</th></tr></thead>
                 <tbody>`;
+        let users = [];
         for (const userDoc of usersSnap.docs) {
             const data = userDoc.data();
+            users.push({ id: userDoc.id, ...data });
+        }
+        users = searchFilter(users, ['login', 'displayName']);
+        for (const user of users) {
             html += `<tr>
-                <td><span title="${data.login || userDoc.id}">${(data.login || userDoc.id).substring(0, 30)}${(data.login || userDoc.id).length > 30 ? '...' : ''}</span></td>
-                <td><input type="text" class="form-control form-control-sm" id="name_${userDoc.id}" value="${escapeHtml(data.displayName || '')}" style="width:100%;"></td>
-                <td><select class="form-select form-select-sm role-select" data-uid="${userDoc.id}" style="width:100%;">
-                    <option value="user" ${data.role === 'user' ? 'selected' : ''}>Пользователь</option>
-                    <option value="economist" ${data.role === 'economist' ? 'selected' : ''}>Экономист</option>
-                    <option value="lawyer" ${data.role === 'lawyer' ? 'selected' : ''}>Юрист</option>
-                    <option value="security" ${data.role === 'security' ? 'selected' : ''}>Охрана</option>
-                    <option value="assistant" ${data.role === 'assistant' ? 'selected' : ''}>Помощник</option>
-                    <option value="deputy_mayor" ${data.role === 'deputy_mayor' ? 'selected' : ''}>Зам.мэра</option>
+                <td><span title="${user.login || user.id}">${(user.login || user.id).substring(0, 30)}${(user.login || user.id).length > 30 ? '...' : ''}</span></td>
+                <td><input type="text" class="form-control form-control-sm" id="name_${user.id}" value="${escapeHtml(user.displayName || '')}" style="width:100%;"></td>
+                <td><select class="form-select form-select-sm role-select" data-uid="${user.id}" style="width:100%;">
+                    <option value="user" ${user.role === 'user' ? 'selected' : ''}>Пользователь</option>
+                    <option value="economist" ${user.role === 'economist' ? 'selected' : ''}>Экономист</option>
+                    <option value="lawyer" ${user.role === 'lawyer' ? 'selected' : ''}>Юрист</option>
+                    <option value="security" ${user.role === 'security' ? 'selected' : ''}>Охрана</option>
+                    <option value="assistant" ${user.role === 'assistant' ? 'selected' : ''}>Помощник</option>
+                    <option value="deputy_mayor" ${user.role === 'deputy_mayor' ? 'selected' : ''}>Зам.мэра</option>
                 </select></td>
-                <td style="text-align: center; white-space: nowrap;"><button class="btn btn-sm btn-outline-custom update-user-btn" data-uid="${userDoc.id}"><i class="bi bi-save"></i> Сохранить</button></span></td>
+                <td style="text-align: center; white-space: nowrap;"><button class="btn btn-sm btn-outline-custom update-user-btn" data-uid="${user.id}"><i class="bi bi-save"></i> Сохранить</button></span></td>
             </tr>`;
         }
         html += `</tbody>}</div>`;
@@ -1174,104 +1737,18 @@
                     renderUsersManagement().then(html => { 
                         document.getElementById("dynamicContent").innerHTML = html; 
                         attachUserEvents(); 
+                        attachSearchListener(() => {
+                            renderUsersManagement().then(html2 => {
+                                document.getElementById("dynamicContent").innerHTML = html2;
+                                attachUserEvents();
+                                attachSearchListener(() => {});
+                            });
+                        });
                     }); 
                 }
             };
             btn.addEventListener('click', btn._userHandler);
         });
-    }
-
-    async function openCreateModal(collectionName, type) {
-        if (collectionName === "complaints") {
-            openComplaintModal();
-            return;
-        }
-        const modal = new bootstrap.Modal(document.getElementById("entryModal"));
-        let specificFields = "";
-        if (type === "contracts") specificFields = `<input class="form-control mb-2" id="name" placeholder="Название договора"><input class="form-control mb-2" id="partner" placeholder="Контрагент"><input class="form-control mb-2" id="amount" placeholder="Сумма">`;
-        else if (type === "businesses") specificFields = `<input class="form-control mb-2" id="businessName" placeholder="Название бизнеса"><input class="form-control mb-2" id="director" placeholder="Директор"><input class="form-control mb-2" id="idCard" placeholder="ID Карта"><input class="form-control mb-2" id="emailId" placeholder="Почта-идентификатор">`;
-        else if (type === "budget") specificFields = `<select class="form-select mb-2" id="type"><option value="income">Приход</option><option value="expense">Расход</option></select><input class="form-control mb-2" id="amount" placeholder="Сумма"><input class="form-control mb-2" id="purpose" placeholder="Назначение">`;
-        else if (type === "amnesty") specificFields = `<input class="form-control mb-2" id="title" placeholder="Название дела"><select class="form-select mb-2" id="status"><option value="check">Проверка материалов</option><option value="hearing">Ожидает слушания</option><option value="rejected">Отказано</option><option value="approved">Одобрено</option></select>`;
-        else if (type === "laws" || type === "decrees") specificFields = `<input class="form-control mb-2" id="title" placeholder="Название">`;
-        else if (type === "employed" || type === "candidates") specificFields = `<input class="form-control mb-2" id="fio" placeholder="ФИО"><input class="form-control mb-2" id="idCard" placeholder="ID Карта"><input class="form-control mb-2" id="position" placeholder="Должность"><input class="form-control mb-2" id="photo" placeholder="Ссылка на фото (URL)"><select class="form-select mb-2" id="status"><option value="pending">На проверке</option><option value="approved">Принят</option><option value="rejected">Отказ</option></select>`;
-        else specificFields = `<input class="form-control mb-2" id="title" placeholder="Название">`;
-        const common = `<textarea class="form-control mb-2" id="description" rows="3" placeholder="Полное описание"></textarea>
-                        <hr><label>Изображения:</label>
-                        <div class="mb-2"><input type="file" id="imageUploads" multiple class="form-control" accept="image/*"><small>Загрузить файлы</small></div>
-                        <div class="mb-2"><input type="text" id="imageUrlInput" class="form-control" placeholder="URL изображения"><button type="button" id="addImageUrlBtn" class="btn btn-sm btn-outline-custom mt-1">Добавить по ссылке</button></div>
-                        <div id="tempImageUrls" class="small text-muted"></div>
-                        <hr><label>Документы:</label>
-                        <input class="form-control mb-2" id="docLinks" placeholder="Ссылки на документы (через запятую)">`;
-        document.getElementById("modalBodyForm").innerHTML = specificFields + common;
-        let imageUrls = [];
-        document.getElementById("addImageUrlBtn")?.addEventListener("click", () => {
-            const url = document.getElementById("imageUrlInput").value.trim();
-            if (url) { imageUrls.push(url); document.getElementById("tempImageUrls").innerHTML = `Добавлено ссылок: ${imageUrls.length}`; document.getElementById("imageUrlInput").value = ""; }
-            else alert("Введите URL");
-        });
-        document.getElementById("saveEntryBtn").onclick = async () => {
-            let newData = { createdAt: new Date() };
-            const fields = ["name","partner","amount","businessName","director","idCard","emailId","type","purpose","title","status","fio","position","photo","description"];
-            fields.forEach(f => { if(document.getElementById(f)) newData[f] = document.getElementById(f).value; });
-            const files = document.getElementById("imageUploads")?.files;
-            let urls = [];
-            if(files) for(let f of files) { let url = await uploadImageToImgbb(f); if(url) urls.push(url); }
-            urls.push(...imageUrls);
-            if(urls.length) newData.images = urls;
-            if(document.getElementById("docLinks")) newData.documents = document.getElementById("docLinks")?.value.split(",").map(s=>s.trim()) || [];
-            await addDoc(collection(db, collectionName), newData);
-            modal.hide();
-        };
-        modal.show();
-    }
-
-    async function openEditModal(collectionName, docId, type) {
-        const snap = await getDoc(doc(db, collectionName, docId));
-        if(!snap.exists()) return;
-        const data = snap.data();
-        if (collectionName === "complaints") {
-            openComplaintModal(docId, data);
-            return;
-        }
-        const modal = new bootstrap.Modal(document.getElementById("entryModal"));
-        let specificFields = "";
-        if (type === "contracts") specificFields = `<input class="form-control mb-2" id="name" value="${escapeHtml(data.name || '')}"><input class="form-control mb-2" id="partner" value="${escapeHtml(data.partner || '')}"><input class="form-control mb-2" id="amount" value="${escapeHtml(data.amount || '')}">`;
-        else if (type === "businesses") specificFields = `<input class="form-control mb-2" id="businessName" value="${escapeHtml(data.businessName || '')}"><input class="form-control mb-2" id="director" value="${escapeHtml(data.director || '')}"><input class="form-control mb-2" id="idCard" value="${escapeHtml(data.idCard || '')}"><input class="form-control mb-2" id="emailId" value="${escapeHtml(data.emailId || '')}">`;
-        else if (type === "budget") specificFields = `<select class="form-select mb-2" id="type"><option ${data.type==='income'?'selected':''} value="income">Приход</option><option ${data.type==='expense'?'selected':''} value="expense">Расход</option></select><input class="form-control mb-2" id="amount" value="${escapeHtml(data.amount || '')}"><input class="form-control mb-2" id="purpose" value="${escapeHtml(data.purpose || '')}">`;
-        else if (type === "amnesty") specificFields = `<input class="form-control mb-2" id="title" value="${escapeHtml(data.title || '')}"><select class="form-select mb-2" id="status"><option ${data.status==='check'?'selected':''} value="check">Проверка</option><option ${data.status==='hearing'?'selected':''} value="hearing">Ожидает слушания</option><option ${data.status==='rejected'?'selected':''} value="rejected">Отказано</option><option ${data.status==='approved'?'selected':''} value="approved">Одобрено</option></select>`;
-        else if (type === "laws" || type === "decrees") specificFields = `<input class="form-control mb-2" id="title" value="${escapeHtml(data.title || '')}">`;
-        else if (type === "employed" || type === "candidates") specificFields = `<input class="form-control mb-2" id="fio" value="${escapeHtml(data.fio || '')}"><input class="form-control mb-2" id="idCard" value="${escapeHtml(data.idCard || '')}"><input class="form-control mb-2" id="position" value="${escapeHtml(data.position || '')}"><input class="form-control mb-2" id="photo" value="${escapeHtml(data.photo || '')}"><select class="form-select mb-2" id="status"><option ${data.status==='pending'?'selected':''} value="pending">На проверке</option><option ${data.status==='approved'?'selected':''} value="approved">Принят</option><option ${data.status==='rejected'?'selected':''} value="rejected">Отказ</option></select>`;
-        else specificFields = `<input class="form-control mb-2" id="title" value="${escapeHtml(data.title || '')}">`;
-        let currentImagesHtml = data.images && data.images.length ? `<div class="mb-2"><label>Текущие изображения:</label><div class="img-thumb-list">${data.images.map(img => `<img src="${img}" width="60">`).join('')}</div></div>` : "";
-        const common = `<textarea class="form-control mb-2" id="description" rows="3">${escapeHtml(data.description || "")}</textarea>
-                        <hr><label>Добавить новые изображения:</label>
-                        <div class="mb-2"><input type="file" id="imageUploads" multiple class="form-control" accept="image/*"><small>Загрузить файлы</small></div>
-                        <div class="mb-2"><input type="text" id="imageUrlInput" class="form-control" placeholder="URL изображения"><button type="button" id="addImageUrlBtn" class="btn btn-sm btn-outline-custom mt-1">Добавить по ссылке</button></div>
-                        <div id="tempImageUrls" class="small text-muted"></div>
-                        ${currentImagesHtml}
-                        <hr><label>Документы:</label>
-                        <input class="form-control mb-2" id="docLinks" value="${(data.documents || []).join(', ')}">`;
-        document.getElementById("modalBodyForm").innerHTML = specificFields + common;
-        let newImageUrls = [];
-        document.getElementById("addImageUrlBtn")?.addEventListener("click", () => {
-            const url = document.getElementById("imageUrlInput").value.trim();
-            if (url) { newImageUrls.push(url); document.getElementById("tempImageUrls").innerHTML = `Добавлено новых ссылок: ${newImageUrls.length}`; document.getElementById("imageUrlInput").value = ""; }
-            else alert("Введите URL");
-        });
-        document.getElementById("saveEntryBtn").onclick = async () => {
-            let updateData = {};
-            const fields = ["name","partner","amount","businessName","director","idCard","emailId","type","purpose","title","status","fio","position","photo","description"];
-            fields.forEach(f => { if(document.getElementById(f)) updateData[f] = document.getElementById(f).value; });
-            const files = document.getElementById("imageUploads")?.files;
-            let newImages = [...(data.images || [])];
-            if(files) for(let f of files) { let url = await uploadImageToImgbb(f); if(url) newImages.push(url); }
-            newImages.push(...newImageUrls);
-            if(newImages.length) updateData.images = newImages;
-            if(document.getElementById("docLinks")) updateData.documents = document.getElementById("docLinks")?.value.split(",").map(s=>s.trim()) || [];
-            await updateDoc(doc(db, collectionName, docId), updateData);
-            modal.hide();
-        };
-        modal.show();
     }
 
     function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m) { if(m === '&') return '&amp;'; if(m === '<') return '&lt;'; if(m === '>') return '&gt;'; return m;}); }
@@ -1281,6 +1758,7 @@
         const navContainer = document.getElementById("mainNav");
         let items = [
             { id: "calendarPage", icon: "bi-calendar-week", label: "Календарь", roles: ["user","deputy_mayor","assistant","economist","lawyer","security"] },
+            { id: "requests", icon: "bi-envelope-paper", label: "Заявки и постановления", roles: ["user","deputy_mayor","assistant","economist","lawyer","security"] },
             { id: "economy", icon: "bi-calculator-fill", label: "Экономический отдел", roles: ["deputy_mayor","assistant","economist","lawyer"] },
             { id: "legal", icon: "bi-gavel", label: "Юридический отдел", roles: ["deputy_mayor","assistant","lawyer","economist","security","user"] },
             { id: "hr", icon: "bi-person-badge", label: "Кадры", roles: ["deputy_mayor","assistant"] },
@@ -1299,13 +1777,15 @@
                     document.querySelectorAll("#mainNav .nav-link").forEach(b => b.classList.remove("active"));
                     btn.classList.add("active");
                     currentMain = item.id;
+                    currentSearchTerm = "";
                     if (currentMain === "calendarPage") renderCalendarPage();
+                    else if (currentMain === "requests") renderRequestsAndDecrees();
                     else if (currentMain === "economy") { currentSub = "contracts"; renderEconomy(currentSub); }
                     else if (currentMain === "legal") { currentSub = "amnesty"; renderLegal(currentSub); }
                     else if (currentMain === "hr") { currentSub = "employed"; renderHR(currentSub); }
                     else if (currentMain === "security") renderSecurity();
                     else if (currentMain === "complaints") renderComplaints();
-                    else if (currentMain === "users") { renderUsersManagement().then(html => { document.getElementById("dynamicContent").innerHTML = html; attachUserEvents(); }); }
+                    else if (currentMain === "users") { renderUsersManagement().then(html => { document.getElementById("dynamicContent").innerHTML = html; attachUserEvents(); attachSearchListener(() => { renderUsersManagement().then(html2 => { document.getElementById("dynamicContent").innerHTML = html2; attachUserEvents(); attachSearchListener(() => {}); }); }); }); }
                 });
                 navContainer.appendChild(btn);
             }
@@ -1364,9 +1844,9 @@
                 const comment = document.getElementById("eventComment").value;
                 if (await addCalendarEvent(date, title, time, comment)) {
                     bootstrap.Modal.getInstance(document.getElementById("eventModal")).hide();
-                    await loadAllEventsForTooltips();
+                    await loadAllEventsForCalendar();
                     if (calendarInstance) {
-                        initCalendarWithTooltips();
+                        initCalendar();
                     }
                 }
             };
