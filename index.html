@@ -152,6 +152,7 @@
 <div class="modal fade" id="loginRegisterModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="loginModalTitle">Вход</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div id="loginForm"><div class="mb-3"><label>Логин</label><input type="text" class="form-control" id="loginUsername" placeholder="myusername"></div><div class="mb-3"><label>Пароль</label><input type="password" class="form-control" id="loginPassword"></div><button class="btn btn-custom w-100" id="doLoginBtn">Войти</button><hr><button class="btn btn-link w-100" id="switchToRegisterBtn">Нет аккаунта? Зарегистрироваться</button></div><div id="registerForm" style="display:none;"><div class="mb-3"><label>Логин</label><input type="text" class="form-control" id="regUsername" placeholder="myusername"></div><div class="mb-3"><label>Пароль (мин 6 символов)</label><input type="password" class="form-control" id="regPassword"></div><button class="btn btn-success w-100" id="doRegisterBtn">Зарегистрироваться</button><hr><button class="btn btn-link w-100" id="switchToLoginBtn">Уже есть аккаунт? Войти</button></div></div></div></div></div>
 <div class="modal fade" id="eventModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-light"><h5 class="modal-title" id="eventModalTitle">Добавить событие</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="eventDate"><div class="mb-2"><label>Название события</label><input type="text" id="eventTitle" class="form-control" placeholder="Например: Совещание"></div><div class="mb-2"><label>Время</label><input type="time" id="eventTime" class="form-control"></div><div class="mb-2"><label>Комментарий</label><textarea id="eventComment" class="form-control" rows="3" placeholder="Дополнительная информация..."></textarea></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button><button type="button" class="btn btn-custom" id="saveEventBtn">Сохранить</button></div></div></div></div>
 <div class="modal fade" id="requestModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header bg-light"><h5 class="modal-title" id="requestModalTitle">Новое заявление</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="mb-3"><label>Тип заявления</label><select id="requestType" class="form-select"><option value="resignation">Заявление на увольнение по собственному желанию</option><option value="vacation">Заявление на отпуск</option><option value="transfer">Заявление на перевод</option><option value="other">Другое</option></select></div><div class="mb-3"><label>Заголовок</label><input type="text" id="requestTitle" class="form-control" placeholder="Краткое описание"></div><div class="mb-3"><label>Текст заявления</label><textarea id="requestContent" class="form-control" rows="8" placeholder="Подробное изложение..."></textarea></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button><button type="button" class="btn btn-custom" id="saveRequestBtn">Отправить</button></div></div></div></div>
+<div class="modal fade" id="reportHistoryModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header bg-light"><h5 class="modal-title" id="reportHistoryModalTitle">Добавить запись в отчет</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="reportHistoryModalBody"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button><button type="button" class="btn btn-custom" id="saveReportHistoryBtn">Добавить запись</button></div></div></div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -237,6 +238,13 @@
     function canViewLegal() { return true; }
     function canViewEconomy() { return isEconomist() || canEditAll() || isLawyer() || isSecurity(); }
     function canViewSecurity() { return isSecurity() || canEditAll(); }
+    
+    // User видит только календарь
+    function canViewEconomyModule() { return !(currentUserRole === "user"); }
+    function canViewLegalModule() { return !(currentUserRole === "user"); }
+    function canViewHRModule() { return isDeputyMayor() || isAssistant(); }
+    function canViewSecurityModule() { return isDeputyMayor() || isAssistant() || isSecurity(); }
+    function canViewComplaintsModule() { return isDeputyMayor() || isAssistant(); }
 
     async function registerWithLogin(login, password) {
         if (!login || password.length < 6) { alert("Логин не пустой, пароль ≥6 символов"); return false; }
@@ -325,11 +333,15 @@
         if (data.history && data.history.length) {
             html += `<hr><strong>📜 История изменений:</strong><div style="max-height: 250px; overflow-y: auto;">`;
             data.history.forEach(h => {
-                html += `<div class="border-bottom py-2"><small class="text-muted">📅 ${h.date}</small><div class="mt-1">${escapeHtml(h.content.substring(0, 200))}${h.content.length > 200 ? '...' : ''}</div></div>`;
+                html += `<div class="border-bottom py-2"><small class="text-muted">📅 ${h.date}</small><div class="mt-1">${escapeHtml(h.content.substring(0, 200))}${h.content.length > 200 ? '...' : ''}</div>`;
+                if (h.images && h.images.length) {
+                    html += `<div class="img-thumb-list mt-1">${h.images.map(img => `<a href="${img}" target="_blank"><img src="${img}" width="60" style="border-radius:6px;"></a>`).join('')}</div>`;
+                }
+                html += `</div>`;
             });
             html += `</div>`;
         }
-        if (data.images && data.images.length) {
+        if (data.images && data.images.length && (!data.history || data.history.length === 0)) {
             html += `<hr><strong>🖼️ Изображения:</strong><div class="img-thumb-list">${data.images.map(img => `<div class="img-thumb-item"><a href="${img}" target="_blank"><img src="${img}" width="80"></a></div>`).join('')}</div>`;
         }
         if (data.documents && data.documents.length) {
@@ -350,7 +362,7 @@
                 if (oldClick) tr.removeEventListener('click', oldClick);
                 
                 const clickHandler = async (e) => {
-                    if (e.target.classList.contains('editBtn') || e.target.classList.contains('deleteBtn')) return;
+                    if (e.target.classList.contains('editBtn') || e.target.classList.contains('deleteBtn') || e.target.classList.contains('add-history-btn')) return;
                     const id = tr.dataset.id;
                     const colName = tr.dataset.collection;
                     const snapDetail = await getDoc(doc(db, colName, id));
@@ -514,58 +526,9 @@
         return true;
     }
 
-    // ========== ФУНКЦИИ ДЛЯ РАБОТЫ С ИЗОБРАЖЕНИЯМИ ==========
-    let tempImageUrls = [];
-    let currentImagesList = [];
+    // ========== ОТЧЕТЫ ПО БИЗНЕСАМ (как в амнистии) ==========
+    let reportModalImages = [];
     
-    function renderImageManager(images = [], onRemoveCallback) {
-        const allImages = [...images];
-        
-        let html = `
-            <div class="mb-3">
-                <label><i class="bi bi-images"></i> Изображения</label>
-                <div class="mb-2">
-                    <input type="file" id="imageUploads" multiple class="form-control" accept="image/*">
-                    <small class="text-muted">Можно выбрать несколько файлов одновременно</small>
-                </div>
-                <div class="mb-2">
-                    <input type="text" id="imageUrlInput" class="form-control" placeholder="URL изображения">
-                    <button type="button" id="addImageUrlBtn" class="btn btn-sm btn-outline-custom mt-1"><i class="bi bi-plus-lg"></i> Добавить по ссылке</button>
-                </div>
-                <div id="imagePreviewArea" class="img-thumb-list"></div>
-            </div>
-        `;
-        
-        return { html, allImages };
-    }
-    
-    function updateImagePreview(containerId, images, onRemove) {
-        const container = document.getElementById(containerId);
-        if (!container) return;
-        
-        if (!images || images.length === 0) {
-            container.innerHTML = '<div class="text-muted small">Нет изображений</div>';
-            return;
-        }
-        
-        container.innerHTML = images.map((img, idx) => `
-            <div class="img-thumb-item">
-                <img src="${img}" alt="Изображение ${idx+1}">
-                <button class="remove-img-btn" data-index="${idx}" title="Удалить"><i class="bi bi-x"></i></button>
-            </div>
-        `).join('');
-        
-        container.querySelectorAll('.remove-img-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const idx = parseInt(btn.dataset.index);
-                images.splice(idx, 1);
-                updateImagePreview(containerId, images, onRemove);
-                if (onRemove) onRemove(images);
-            });
-        });
-    }
-
-    // ========== ОТЧЕТЫ ПО БИЗНЕСАМ ==========
     async function renderBusinessReports() {
         if (!canViewEconomy()) {
             document.getElementById("dynamicContent").innerHTML = "<div class='alert alert-warning'>Доступ запрещён</div>";
@@ -619,17 +582,21 @@
                                     <strong>Последнее обновление:</strong><br>
                                     <small class="text-muted">${lastUpdated}</small>
                                 </div>
-                                ${hasReport && report.content ? `
+                                ${hasReport && report.history && report.history.length > 0 ? `
                                     <div class="border rounded p-2 bg-light" style="max-height: 100px; overflow-y: auto; font-size: 0.75rem;">
                                         <strong>Последняя запись:</strong><br>
+                                        ${escapeHtml(report.history[report.history.length-1].content.substring(0, 100))}${report.history[report.history.length-1].content.length > 100 ? '...' : ''}
+                                    </div>
+                                ` : (hasReport && report.content ? `
+                                    <div class="border rounded p-2 bg-light" style="max-height: 100px; overflow-y: auto; font-size: 0.75rem;">
+                                        <strong>Содержание:</strong><br>
                                         ${escapeHtml(report.content.substring(0, 100))}${report.content.length > 100 ? '...' : ''}
                                     </div>
-                                ` : '<div class="text-muted small">Отчет не заполнен</div>'}
+                                ` : '<div class="text-muted small">Отчет не заполнен</div>')}
                             </div>
                             <div class="card-footer bg-white">
-                                <button class="btn btn-sm btn-custom w-100 edit-report-btn" data-business-id="${business.id}" data-business-name="${escapeHtml(business.businessName || '')}">
-                                    <i class="bi ${hasReport ? 'bi-pencil-square' : 'bi-plus-circle'}"></i> 
-                                    ${hasReport ? 'Редактировать / Дополнить отчет' : 'Создать отчет'}
+                                <button class="btn btn-sm btn-custom w-100 add-report-history-btn" data-business-id="${business.id}" data-business-name="${escapeHtml(business.businessName || '')}">
+                                    <i class="bi bi-plus-circle"></i> Добавить запись в отчет
                                 </button>
                             </div>
                         </div>
@@ -648,16 +615,16 @@
             renderEconomy(currentSub);
         });
         
-        document.querySelectorAll('.edit-report-btn').forEach(btn => {
+        document.querySelectorAll('.add-report-history-btn').forEach(btn => {
             btn.addEventListener('click', async () => {
                 const businessId = btn.dataset.businessId;
                 const businessName = btn.dataset.businessName;
-                await openReportModal(businessId, businessName);
+                await openReportHistoryModal(businessId, businessName);
             });
         });
     }
 
-    async function openReportModal(businessId, businessName) {
+    async function openReportHistoryModal(businessId, businessName) {
         const reportsSnap = await getDocs(query(collection(db, "business_reports"), where("businessId", "==", businessId)));
         let existingReport = null;
         let reportId = null;
@@ -667,19 +634,22 @@
             reportId = reportsSnap.docs[0].id;
         }
         
-        const modal = new bootstrap.Modal(document.getElementById("entryModal"));
-        document.getElementById("modalTitle").innerHTML = `<i class="bi bi-file-text"></i> Отчет по бизнесу: ${escapeHtml(businessName)}`;
+        reportModalImages = [];
+        
+        const modal = new bootstrap.Modal(document.getElementById("reportHistoryModal"));
+        document.getElementById("reportHistoryModalTitle").innerHTML = `<i class="bi bi-file-text"></i> Добавить запись в отчет: ${escapeHtml(businessName)}`;
         
         let historyHtml = '';
         if (existingReport?.history && existingReport.history.length > 0) {
             historyHtml = `
                 <hr>
-                <label><i class="bi bi-clock-history"></i> История изменений:</label>
+                <label><i class="bi bi-clock-history"></i> История записей:</label>
                 <div class="border rounded p-2 bg-light" style="max-height: 150px; overflow-y: auto; font-size: 0.75rem;">
                     ${existingReport.history.map(h => `
                         <div class="mb-2 pb-2 border-bottom">
                             <div class="text-muted small">📅 ${h.date}</div>
                             <div>${escapeHtml(h.content)}</div>
+                            ${h.images && h.images.length ? `<div class="img-thumb-list mt-1">${h.images.map(img => `<a href="${img}" target="_blank"><img src="${img}" width="40" style="border-radius:4px;"></a>`).join('')}</div>` : ''}
                         </div>
                     `).join('')}
                 </div>
@@ -688,39 +658,72 @@
         
         const modalBody = `
             <div class="mb-3">
-                <label><i class="bi bi-info-circle"></i> Текущий отчет</label>
-                <textarea id="reportContent" class="form-control" rows="10" placeholder="Введите текст отчета...">${escapeHtml(existingReport?.content || '')}</textarea>
+                <label><i class="bi bi-plus-circle"></i> Новая запись</label>
+                <textarea id="newReportEntry" class="form-control" rows="6" placeholder="Введите текст новой записи..."></textarea>
+            </div>
+            <div class="mb-3">
+                <label><i class="bi bi-images"></i> Изображения</label>
+                <div class="mb-2">
+                    <input type="file" id="reportImageUploads" multiple class="form-control" accept="image/*">
+                    <small class="text-muted">Можно выбрать несколько файлов одновременно</small>
+                </div>
+                <div class="mb-2">
+                    <input type="text" id="reportImageUrlInput" class="form-control" placeholder="URL изображения">
+                    <button type="button" id="addReportImageUrlBtn" class="btn btn-sm btn-outline-custom mt-1"><i class="bi bi-plus-lg"></i> Добавить по ссылке</button>
+                </div>
+                <div id="reportImagePreviewArea" class="img-thumb-list"></div>
             </div>
             ${historyHtml}
             <hr>
             <div class="alert alert-info small">
-                <i class="bi bi-lightbulb"></i> <strong>Важно:</strong> При сохранении новый текст будет <strong>добавлен к существующему</strong> с указанием даты и времени. 
-                Старый текст сохранится в истории.
+                <i class="bi bi-lightbulb"></i> <strong>Важно:</strong> Новая запись будет добавлена в историю с указанием даты и времени.
             </div>
         `;
         
-        document.getElementById("modalBodyForm").innerHTML = modalBody;
+        document.getElementById("reportHistoryModalBody").innerHTML = modalBody;
         
-        document.getElementById("saveEntryBtn").onclick = async () => {
-            const newContent = document.getElementById("reportContent").value.trim();
+        updateReportImagePreview();
+        
+        document.getElementById("addReportImageUrlBtn")?.addEventListener("click", () => {
+            const url = document.getElementById("reportImageUrlInput").value.trim();
+            if (url) {
+                reportModalImages.push(url);
+                updateReportImagePreview();
+                document.getElementById("reportImageUrlInput").value = "";
+            } else {
+                alert("Введите URL");
+            }
+        });
+        
+        document.getElementById("reportImageUploads")?.addEventListener("change", async (e) => {
+            const files = Array.from(e.target.files);
+            if (files.length > 0) {
+                const newUrls = await uploadMultipleImages(files);
+                reportModalImages.push(...newUrls);
+                updateReportImagePreview();
+                document.getElementById("reportImageUploads").value = "";
+            }
+        });
+        
+        document.getElementById("saveReportHistoryBtn").onclick = async () => {
+            const newContent = document.getElementById("newReportEntry").value.trim();
             if (!newContent) {
-                alert("Введите текст отчета");
+                alert("Введите текст записи");
                 return;
             }
             
             const now = new Date();
             const dateStr = now.toLocaleString('ru-RU');
             
+            const historyEntry = {
+                date: dateStr,
+                content: newContent,
+                images: reportModalImages.length ? [...reportModalImages] : []
+            };
+            
             if (existingReport && reportId) {
-                const historyEntry = {
-                    date: dateStr,
-                    content: existingReport.content
-                };
                 const history = [...(existingReport.history || []), historyEntry];
-                const updatedContent = existingReport.content + `\n\n--- ДОПОЛНЕНИЕ ОТ ${dateStr} ---\n${newContent}`;
-                
                 await updateDoc(doc(db, "business_reports", reportId), {
-                    content: updatedContent,
                     history: history,
                     updatedAt: new Date(),
                     updatedBy: currentUser.uid
@@ -729,8 +732,8 @@
                 await addDoc(collection(db, "business_reports"), {
                     businessId: businessId,
                     businessName: businessName,
+                    history: [historyEntry],
                     content: newContent,
-                    history: [],
                     createdAt: new Date(),
                     updatedAt: new Date(),
                     createdBy: currentUser.uid
@@ -742,6 +745,31 @@
         };
         
         modal.show();
+    }
+    
+    function updateReportImagePreview() {
+        const container = document.getElementById("reportImagePreviewArea");
+        if (!container) return;
+        
+        if (!reportModalImages || reportModalImages.length === 0) {
+            container.innerHTML = '<div class="text-muted small">Нет изображений</div>';
+            return;
+        }
+        
+        container.innerHTML = reportModalImages.map((img, idx) => `
+            <div class="img-thumb-item">
+                <img src="${img}" alt="Изображение ${idx+1}">
+                <button class="remove-img-btn" data-index="${idx}" title="Удалить"><i class="bi bi-x"></i></button>
+            </div>
+        `).join('');
+        
+        container.querySelectorAll('.remove-img-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const idx = parseInt(btn.dataset.index);
+                reportModalImages.splice(idx, 1);
+                updateReportImagePreview();
+            });
+        });
     }
 
     // ========== ЗАЯВКИ И ПОСТАНОВЛЕНИЯ ==========
@@ -1072,7 +1100,6 @@
                             await addDoc(collection(db, "business_reports"), {
                                 businessId: businessId,
                                 businessName: business.businessName,
-                                content: '',
                                 history: [],
                                 createdAt: new Date(),
                                 updatedAt: new Date(),
@@ -1139,6 +1166,11 @@
 
     // ========== АМНИСТИЯ С ИСТОРИЕЙ ==========
     async function renderLegal(sub) {
+        if (!canViewLegalModule()) {
+            document.getElementById("dynamicContent").innerHTML = "<div class='alert alert-warning'>Доступ запрещён</div>";
+            return;
+        }
+        
         const subTitles = { amnesty: "Амнистия", laws: "Законы", decrees: "Постановления и указы" };
         const collections = { amnesty: "legal_amnesty", laws: "legal_laws", decrees: "legal_decrees" };
         
@@ -1189,7 +1221,7 @@
                     table += `<td><span title="${data.description || ''}">${(data.description || '').substring(0, 80)}${(data.description || '').length > 80 ? '...' : ''}</span>`;
                     table += `<td>${canEditLegal() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${data.id}" data-collection="${collections[sub]}" data-type="${sub}"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${data.id}" data-collection="${collections[sub]}"><i class="bi bi-trash"></i></button>` : '—'}</span>`;
                 }
-                table += `<tr>`;
+                table += `<td>`;
             });
             table += `</tbody>}</div>`;
             recordsDiv.innerHTML = table;
@@ -1283,6 +1315,11 @@
 
     // ========== ЖАЛОБЫ ==========
     async function renderComplaints() {
+        if (!canViewComplaintsModule()) {
+            document.getElementById("dynamicContent").innerHTML = "<div class='alert alert-warning'>Доступ запрещён</div>";
+            return;
+        }
+        
         const colRef = collection(db, "complaints");
         let html = `<div class="d-flex justify-content-between align-items-center mb-3"><h5><i class="bi bi-exclamation-triangle"></i> Жалобы и обращения</h5>${canManageComplaints() ? '<button class="btn btn-custom btn-sm" id="createComplaintBtn">+ Добавить жалобу</button>' : ''}</div>`;
         html += renderSearchBox("Поиск по заголовку или автору...");
@@ -1613,7 +1650,7 @@
 
     // ========== КАДРЫ ==========
     async function renderHR(sub) {
-        if (!canEditAll()) { document.getElementById("dynamicContent").innerHTML = "<div class='alert alert-warning'>Доступ запрещён</div>"; return; }
+        if (!canViewHRModule()) { document.getElementById("dynamicContent").innerHTML = "<div class='alert alert-warning'>Доступ запрещён</div>"; return; }
         const subTitles = { employed: "Трудоустроенные", candidates: "Потенциальные" };
         const collections = { employed: "hr_employed", candidates: "hr_candidates" };
         let html = `<div class="subnav">${Object.keys(subTitles).map(s => `<button class="subnav-btn ${currentSub === s ? 'active' : ''}" data-sub="${s}">${subTitles[s]}</button>`).join('')}</div>`;
@@ -1656,7 +1693,7 @@
 
     // ========== ОХРАНА ==========
     async function renderSecurity() {
-        if (!canViewSecurity()) { document.getElementById("dynamicContent").innerHTML = "<div class='alert alert-warning'>Доступ запрещён</div>"; return; }
+        if (!canViewSecurityModule()) { document.getElementById("dynamicContent").innerHTML = "<div class='alert alert-warning'>Доступ запрещён</div>"; return; }
         let html = `<div class="d-flex justify-content-between align-items-center mb-3"><h5><i class="bi bi-shield-check me-2"></i>Правила и постановления охраны</h5>${canEditSecurity() ? '<button class="btn btn-custom btn-sm" id="createNewBtn">+ Добавить</button>' : ''}</div>`;
         html += renderSearchBox("Поиск по названию...");
         html += `<div id="recordsList">Загрузка...</div>`;
@@ -1758,13 +1795,13 @@
         const navContainer = document.getElementById("mainNav");
         let items = [
             { id: "calendarPage", icon: "bi-calendar-week", label: "Календарь", roles: ["user","deputy_mayor","assistant","economist","lawyer","security"] },
-            { id: "requests", icon: "bi-envelope-paper", label: "Заявки и постановления", roles: ["user","deputy_mayor","assistant","economist","lawyer","security"] },
+            { id: "requests", icon: "bi-envelope-paper", label: "Заявки и постановления", roles: ["deputy_mayor","assistant","economist","lawyer","security"] },
             { id: "economy", icon: "bi-calculator-fill", label: "Экономический отдел", roles: ["deputy_mayor","assistant","economist","lawyer"] },
-            { id: "legal", icon: "bi-gavel", label: "Юридический отдел", roles: ["deputy_mayor","assistant","lawyer","economist","security","user"] },
+            { id: "legal", icon: "bi-gavel", label: "Юридический отдел", roles: ["deputy_mayor","assistant","lawyer","economist","security"] },
             { id: "hr", icon: "bi-person-badge", label: "Кадры", roles: ["deputy_mayor","assistant"] },
             { id: "security", icon: "bi-shield-check", label: "Охрана", roles: ["deputy_mayor","assistant","security"] }
         ];
-        if (canManageComplaints()) items.push({ id: "complaints", icon: "bi-exclamation-triangle", label: "Жалобы", roles: ["deputy_mayor","assistant"] });
+        if (canViewComplaintsModule()) items.push({ id: "complaints", icon: "bi-exclamation-triangle", label: "Жалобы", roles: ["deputy_mayor","assistant"] });
         if (canManageUsers()) items.push({ id: "users", icon: "bi-people", label: "Сотрудники", roles: ["deputy_mayor","assistant"] });
         navContainer.innerHTML = "";
         for (let item of items) {
