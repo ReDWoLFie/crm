@@ -101,6 +101,15 @@
             font-weight: 700;
         }
         
+        /* КАРТОЧКИ ОТЧЕТОВ */
+        .report-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .report-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
         @media (max-width: 768px) {
             .table-custom { font-size: 0.75rem; }
             .btn-outline-custom, .btn-outline-danger { padding: 2px 6px; font-size: 0.7rem; }
@@ -384,7 +393,19 @@
                 });
                 container.querySelectorAll('.deleteBtn').forEach(btn => {
                     btn.removeEventListener('click', btn._deleteHandler);
-                    btn._deleteHandler = async (e) => { e.stopPropagation(); if(confirm("Удалить?")) await deleteDoc(doc(db, btn.dataset.collection, btn.dataset.id)); };
+                    btn._deleteHandler = async (e) => { 
+                        e.stopPropagation(); 
+                        if(confirm("Удалить?")) {
+                            // Если удаляем бизнес - удаляем связанный отчет
+                            if (btn.dataset.collection === "economy_businesses") {
+                                const reportsSnap = await getDocs(query(collection(db, "business_reports"), where("businessId", "==", btn.dataset.id)));
+                                if (!reportsSnap.empty) {
+                                    await deleteDoc(doc(db, "business_reports", reportsSnap.docs[0].id));
+                                }
+                            }
+                            await deleteDoc(doc(db, btn.dataset.collection, btn.dataset.id));
+                        }
+                    };
                     btn.addEventListener('click', btn._deleteHandler);
                 });
             }
@@ -546,6 +567,388 @@
         return true;
     }
 
+    // ========== ОТЧЕТЫ ПО БИЗНЕСАМ ==========
+    async function renderBusinessReports() {
+        if (!canViewEconomy()) {
+            document.getElementById("dynamicContent").innerHTML = "<div class='alert alert-warning'>Доступ запрещён</div>";
+            return;
+        }
+        
+        const businessesSnap = await getDocs(collection(db, "economy_businesses"));
+        const businesses = [];
+        businessesSnap.forEach(doc => {
+            businesses.push({ id: doc.id, ...doc.data() });
+        });
+        
+        const reportsSnap = await getDocs(collection(db, "business_reports"));
+        const reports = {};
+        reportsSnap.forEach(doc => {
+            reports[doc.data().businessId] = { id: doc.id, ...doc.data() };
+        });
+        
+        let html = `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5><i class="bi bi-file-text-fill"></i> Отчеты по бизнесам</h5>
+            </div>
+            <div class="row">
+        `;
+        
+        if (businesses.length === 0) {
+            html += `<div class="col-12"><div class="alert alert-light">Нет добавленных бизнесов. Сначала добавьте бизнес в разделе "Бизнесы".</div></div>`;
+        } else {
+            for (const business of businesses) {
+                const report = reports[business.id];
+                const hasReport = !!report;
+                const lastUpdated = report?.updatedAt?.toDate ? new Date(report.updatedAt.toDate()).toLocaleString() : 'не создан';
+                
+                html += `
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card h-100 shadow-sm report-card">
+                            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0"><i class="bi bi-building"></i> ${escapeHtml(business.businessName || 'Без названия')}</h6>
+                                <span class="badge ${hasReport ? 'bg-success' : 'bg-secondary'}">${hasReport ? 'Отчет есть' : 'Нет отчета'}</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="small text-muted mb-2">
+                                    <i class="bi bi-person"></i> Директор: ${escapeHtml(business.director || '—')}<br>
+                                    <i class="bi bi-card-text"></i> ID: ${escapeHtml(business.idCard || '—')}
+                                </div>
+                                <div class="mb-2">
+                                    <strong>Последнее обновление:</strong><br>
+                                    <small class="text-muted">${lastUpdated}</small>
+                                </div>
+                                ${hasReport && report.content ? `
+                                    <div class="border rounded p-2 bg-light" style="max-height: 100px; overflow-y: auto; font-size: 0.75rem;">
+                                        <strong>Последняя запись:</strong><br>
+                                        ${escapeHtml(report.content.substring(0, 100))}${report.content.length > 100 ? '...' : ''}
+                                    </div>
+                                ` : '<div class="text-muted small">Отчет не заполнен</div>'}
+                            </div>
+                            <div class="card-footer bg-white">
+                                <button class="btn btn-sm btn-custom w-100 edit-report-btn" data-business-id="${business.id}" data-business-name="${escapeHtml(business.businessName || '')}">
+                                    <i class="bi ${hasReport ? 'bi-pencil-square' : 'bi-plus-circle'}"></i> 
+                                    ${hasReport ? 'Редактировать / Дополнить отчет' : 'Создать отчет'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        html += `</div>`;
+        document.getElementById("dynamicContent").innerHTML = html;
+        
+        document.querySelectorAll('.edit-report-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const businessId = btn.dataset.businessId;
+                const businessName = btn.dataset.businessName;
+                await openReportModal(businessId, businessName);
+            });
+        });
+    }
+
+    async function openReportModal(businessId, businessName) {
+        const reportsSnap = await getDocs(query(collection(db, "business_reports"), where("businessId", "==", businessId)));
+        let existingReport = null;
+        let reportId = null;
+        
+        if (!reportsSnap.empty) {
+            existingReport = reportsSnap.docs[0].data();
+            reportId = reportsSnap.docs[0].id;
+        }
+        
+        const modal = new bootstrap.Modal(document.getElementById("entryModal"));
+        document.getElementById("modalTitle").innerHTML = `<i class="bi bi-file-text"></i> Отчет по бизнесу: ${escapeHtml(businessName)}`;
+        
+        let historyHtml = '';
+        if (existingReport?.history && existingReport.history.length > 0) {
+            historyHtml = `
+                <hr>
+                <label><i class="bi bi-clock-history"></i> История изменений:</label>
+                <div class="border rounded p-2 bg-light" style="max-height: 150px; overflow-y: auto; font-size: 0.75rem;">
+                    ${existingReport.history.map(h => `
+                        <div class="mb-2 pb-2 border-bottom">
+                            <div class="text-muted small">📅 ${h.date}</div>
+                            <div>${escapeHtml(h.content)}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        const modalBody = `
+            <div class="mb-3">
+                <label><i class="bi bi-info-circle"></i> Текущий отчет</label>
+                <textarea id="reportContent" class="form-control" rows="10" placeholder="Введите текст отчета...">${existingReport?.content || ''}</textarea>
+            </div>
+            ${historyHtml}
+            <hr>
+            <div class="alert alert-info small">
+                <i class="bi bi-lightbulb"></i> <strong>Важно:</strong> При сохранении новый текст будет <strong>добавлен к существующему</strong> с указанием даты и времени. 
+                Старый текст сохранится в истории.
+            </div>
+        `;
+        
+        document.getElementById("modalBodyForm").innerHTML = modalBody;
+        
+        document.getElementById("saveEntryBtn").onclick = async () => {
+            const newContent = document.getElementById("reportContent").value.trim();
+            if (!newContent) {
+                alert("Введите текст отчета");
+                return;
+            }
+            
+            const now = new Date();
+            const dateStr = now.toLocaleString('ru-RU');
+            
+            if (existingReport && reportId) {
+                const historyEntry = {
+                    date: dateStr,
+                    content: existingReport.content
+                };
+                const history = [...(existingReport.history || []), historyEntry];
+                const updatedContent = existingReport.content + `\n\n--- ДОПОЛНЕНИЕ ОТ ${dateStr} ---\n${newContent}`;
+                
+                await updateDoc(doc(db, "business_reports", reportId), {
+                    content: updatedContent,
+                    history: history,
+                    updatedAt: new Date(),
+                    updatedBy: currentUser.uid
+                });
+            } else {
+                await addDoc(collection(db, "business_reports"), {
+                    businessId: businessId,
+                    businessName: businessName,
+                    content: newContent,
+                    history: [],
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                    createdBy: currentUser.uid
+                });
+            }
+            
+            modal.hide();
+            renderBusinessReports();
+        };
+        
+        modal.show();
+    }
+
+    // ========== ЭКОНОМИКА ==========
+    let currentBudgetState = { total: 0, docId: null };
+    
+    async function renderBudgetWithWidget() {
+        const subTitles = { contracts: "Договоры", businesses: "Бизнесы", reports: "Отчеты по бизнесам", budget: "Бюджет" };
+        
+        const budgetStateSnap = await getDocs(collection(db, "budget_state"));
+        if (!budgetStateSnap.empty) {
+            const doc = budgetStateSnap.docs[0];
+            currentBudgetState.total = doc.data().total || 0;
+            currentBudgetState.docId = doc.id;
+        } else {
+            currentBudgetState.total = 0;
+            currentBudgetState.docId = null;
+        }
+        
+        let html = `
+            <div class="subnav">${Object.keys(subTitles).map(s => `<button class="subnav-btn ${currentSub === s ? 'active' : ''}" data-sub="${s}">${subTitles[s]}</button>`).join('')}</div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5>Бюджет</h5>
+                ${canEditEconomy() ? '<button class="btn btn-custom btn-sm" id="createNewBtn">+ Добавить операцию</button>' : ''}
+            </div>
+            <div id="budgetWidgetContainer"></div>
+            <div id="recordsList">Загрузка...</div>
+        `;
+        document.getElementById("dynamicContent").innerHTML = html;
+        
+        document.querySelectorAll(".subnav-btn").forEach(btn => btn.addEventListener("click", () => { currentSub = btn.dataset.sub; renderEconomy(currentSub); }));
+        
+        const updateWidget = (income, expense) => {
+            const widgetContainer = document.getElementById("budgetWidgetContainer");
+            if (!widgetContainer) return;
+            const calculated = currentBudgetState.total + income - expense;
+            widgetContainer.innerHTML = `
+                <div class="budget-widget">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <div>
+                            <h6 class="mb-1 opacity-75">Общий бюджет Мэрии</h6>
+                            <div class="stat-number" id="totalBudgetDisplay">${calculated.toLocaleString()} ₽</div>
+                            <small class="opacity-75">Доходы: +${income.toLocaleString()} ₽ | Расходы: -${expense.toLocaleString()} ₽</small>
+                            <div><small class="opacity-50">Начальный бюджет: ${currentBudgetState.total.toLocaleString()} ₽</small></div>
+                        </div>
+                        <div>
+                            <button class="btn btn-light btn-sm" id="editInitialBudgetBtn" style="border-radius: 30px;">
+                                <i class="bi bi-pencil"></i> Установить начальный бюджет
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById("editInitialBudgetBtn")?.addEventListener("click", async () => {
+                const newTotal = prompt("Введите начальный бюджет мэрии (в рублях):", currentBudgetState.total);
+                if (newTotal !== null && !isNaN(Number(newTotal))) {
+                    const newTotalNum = Number(newTotal);
+                    if (currentBudgetState.docId) {
+                        await updateDoc(doc(db, "budget_state", currentBudgetState.docId), { total: newTotalNum, updatedAt: new Date() });
+                    } else {
+                        const docRef = await addDoc(collection(db, "budget_state"), { total: newTotalNum, createdAt: new Date() });
+                        currentBudgetState.docId = docRef.id;
+                    }
+                    currentBudgetState.total = newTotalNum;
+                    const { income: newIncome, expense: newExpense } = await recalcBudgetTotals();
+                    updateWidget(newIncome, newExpense);
+                } else if (newTotal !== null) {
+                    alert("Введите корректное число");
+                }
+            });
+        };
+        
+        const recalcBudgetTotals = async () => {
+            const budgetSnap = await getDocs(collection(db, "economy_budget"));
+            let income = 0, expense = 0;
+            budgetSnap.forEach(doc => {
+                const data = doc.data();
+                if (data.type === "income") income += Number(data.amount) || 0;
+                if (data.type === "expense") expense += Number(data.amount) || 0;
+            });
+            return { income, expense };
+        };
+        
+        onSnapshot(query(collection(db, "economy_budget"), orderBy("createdAt", "desc")), async (snapshot) => {
+            const recordsDiv = document.getElementById("recordsList");
+            if (!recordsDiv) return;
+            
+            let income = 0, expense = 0;
+            if (snapshot.empty) { 
+                recordsDiv.innerHTML = "<div class='alert alert-light'>Нет операций</div>"; 
+            } else {
+                let table = `<table class="table table-custom table-hover"><thead><th>Тип</th><th>Сумма</th><th>Назначение</th><th>Дата</th><th style="width:90px">Действия</th></thead><tbody>`;
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const id = docSnap.id;
+                    if (data.type === "income") income += Number(data.amount) || 0;
+                    if (data.type === "expense") expense += Number(data.amount) || 0;
+                    table += `<tr data-id="${id}" data-collection="economy_budget" data-type="budget">
+                                <td><span class="badge ${data.type === 'income' ? 'bg-success' : 'bg-danger'}">${data.type === 'income' ? 'Приход' : 'Расход'}</span></td>
+                                <td>${data.amount || 0} ₽</span></td>
+                                <td><span title="${data.purpose || ''}">${(data.purpose || '').substring(0, 40)}${(data.purpose || '').length > 40 ? '...' : ''}</span></td>
+                                <td>${data.createdAt?.toDate ? new Date(data.createdAt.toDate()).toLocaleDateString() : ""}</span></td>
+                                <td>${canEditEconomy() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${id}" data-collection="economy_budget" data-type="budget"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${id}" data-collection="economy_budget"><i class="bi bi-trash"></i></button>` : '—'}</span></td>
+                              </tr>`;
+                });
+                table += `</tbody>}</div>`;
+                recordsDiv.innerHTML = table;
+                attachTableEvents("recordsList", "economy_budget", canEditEconomy());
+            }
+            updateWidget(income, expense);
+        });
+        
+        if (canEditEconomy()) document.getElementById("createNewBtn")?.addEventListener("click", () => openCreateModal("economy_budget", "budget"));
+        
+        const { income, expense } = await recalcBudgetTotals();
+        updateWidget(income, expense);
+    }
+
+    async function renderEconomy(sub) {
+        const subTitles = { 
+            contracts: "Договоры", 
+            businesses: "Бизнесы", 
+            reports: "Отчеты по бизнесам", 
+            budget: "Бюджет" 
+        };
+        
+        if (sub === "reports") {
+            await renderBusinessReports();
+            return;
+        }
+        
+        if (sub === "budget") {
+            await renderBudgetWithWidget();
+            return;
+        }
+        
+        const collections = { 
+            contracts: "economy_contracts", 
+            businesses: "economy_businesses"
+        };
+        
+        const colRef = collection(db, collections[sub]);
+        let html = `<div class="subnav">${Object.keys(subTitles).map(s => `<button class="subnav-btn ${currentSub === s ? 'active' : ''}" data-sub="${s}">${subTitles[s]}</button>`).join('')}</div>`;
+        html += `<div class="d-flex justify-content-between align-items-center mb-3"><h5>${subTitles[sub]}</h5>${canEditEconomy() ? '<button class="btn btn-custom btn-sm" id="createNewBtn">+ Добавить</button>' : ''}</div><div id="recordsList">Загрузка...</div>`;
+        document.getElementById("dynamicContent").innerHTML = html;
+        document.querySelectorAll(".subnav-btn").forEach(btn => btn.addEventListener("click", () => { currentSub = btn.dataset.sub; renderEconomy(currentSub); }));
+        
+        if (sub === "businesses") {
+            onSnapshot(query(colRef, orderBy("createdAt", "desc")), async (snapshot) => {
+                const recordsDiv = document.getElementById("recordsList");
+                if (!recordsDiv) return;
+                
+                // Создаем отчеты для новых бизнесов
+                for (const docSnap of snapshot.docs) {
+                    const business = docSnap.data();
+                    const businessId = docSnap.id;
+                    if (business.businessName) {
+                        const reportsCheck = await getDocs(query(collection(db, "business_reports"), where("businessId", "==", businessId)));
+                        if (reportsCheck.empty) {
+                            await addDoc(collection(db, "business_reports"), {
+                                businessId: businessId,
+                                businessName: business.businessName,
+                                content: '',
+                                history: [],
+                                createdAt: new Date(),
+                                updatedAt: new Date(),
+                                createdBy: currentUser.uid
+                            });
+                        }
+                    }
+                }
+                
+                if (snapshot.empty) { recordsDiv.innerHTML = "<div class='alert alert-light'>Нет записей</div>"; return; }
+                let table = `<table class="table table-custom table-hover"><thead><th>Название бизнеса</th><th>Директор</th><th>ID Карта</th><th>Почта</th><th style="width:90px">Действия</th></thead><tbody>`;
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const id = docSnap.id;
+                    table += `<tr data-id="${id}" data-collection="economy_businesses" data-type="businesses">
+                                <td><span title="${data.businessName || ''}">${(data.businessName || '').substring(0, 40)}${(data.businessName || '').length > 40 ? '...' : ''}</span></td>
+                                <td><span title="${data.director || ''}">${(data.director || '').substring(0, 30)}${(data.director || '').length > 30 ? '...' : ''}</span></td>
+                                <td><span class="id-card-badge" title="${data.idCard || ''}">${(data.idCard || '').substring(0, 20)}${(data.idCard || '').length > 20 ? '...' : ''}</span></td>
+                                <td><span title="${data.emailId || ''}">${(data.emailId || '').substring(0, 25)}${(data.emailId || '').length > 25 ? '...' : ''}</span></td>
+                                <td>${canEditEconomy() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${id}" data-collection="economy_businesses" data-type="businesses"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${id}" data-collection="economy_businesses"><i class="bi bi-trash"></i></button>` : '—'}</td>
+                              </tr>`;
+                });
+                table += `</tbody>}</div>`;
+                recordsDiv.innerHTML = table;
+                attachTableEvents("recordsList", "economy_businesses", canEditEconomy());
+            });
+        } else {
+            onSnapshot(query(colRef, orderBy("createdAt", "desc")), (snapshot) => {
+                const recordsDiv = document.getElementById("recordsList");
+                if (!recordsDiv) return;
+                if (snapshot.empty) { recordsDiv.innerHTML = "<div class='alert alert-light'>Нет записей</div>"; return; }
+                let table = `<table class="table table-custom table-hover"><thead><th>Название договора</th><th>Контрагент</th><th>Сумма</th><th style="width:90px">Действия</th></thead><tbody>`;
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const id = docSnap.id;
+                    table += `<tr data-id="${id}" data-collection="economy_contracts" data-type="contracts">
+                                <td><span title="${data.name || ''}">${(data.name || '').substring(0, 40)}${(data.name || '').length > 40 ? '...' : ''}</span></td>
+                                <td><span title="${data.partner || ''}">${(data.partner || '').substring(0, 30)}${(data.partner || '').length > 30 ? '...' : ''}</span></td>
+                                <td>${data.amount || ""} ₽</span></td>
+                                <td>${canEditEconomy() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${id}" data-collection="economy_contracts" data-type="contracts"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${id}" data-collection="economy_contracts"><i class="bi bi-trash"></i></button>` : '—'}</td>
+                              </tr>`;
+                });
+                table += `</tbody>}</div>`;
+                recordsDiv.innerHTML = table;
+                attachTableEvents("recordsList", "economy_contracts", canEditEconomy());
+            });
+        }
+        
+        if (canEditEconomy()) {
+            document.getElementById("createNewBtn")?.addEventListener("click", () => openCreateModal(collections[sub], sub));
+        }
+    }
+
     // ========== ЖАЛОБЫ ==========
     async function renderComplaints() {
         const colRef = collection(db, "complaints");
@@ -555,7 +958,7 @@
             const recordsDiv = document.getElementById("complaintsList");
             if (!recordsDiv) return;
             if (snapshot.empty) { recordsDiv.innerHTML = "<div class='alert alert-light'>Нет жалоб</div>"; return; }
-            let table = `<table class="table table-custom table-hover"><thead><tr><th>Заголовок</th><th>От кого</th><th>Статус</th><th style="width:90px">Действия</th></tr></thead><tbody>`;
+            let table = `<table class="table table-custom table-hover"><thead><th>Заголовок</th><th>От кого</th><th>Статус</th><th style="width:90px">Действия</th></thead><tbody>`;
             snapshot.forEach(docSnap => {
                 const data = docSnap.data();
                 const id = docSnap.id;
@@ -565,8 +968,8 @@
                             <td><span title="${data.title || ''}">${(data.title || '').substring(0, 50)}${(data.title || '').length > 50 ? '...' : ''}</span></td>
                             <td><span title="${data.author || ''}">${(data.author || '').substring(0, 30)}${(data.author || '').length > 30 ? '...' : ''}</span></td>
                             <td><span class="status-badge status-${statusClass}">${statuses[data.status] || "Новая"}</span></td>
-                            <td>${canManageComplaints() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${id}" data-collection="complaints" data-type="complaint"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${id}" data-collection="complaints"><i class="bi bi-trash"></i></button>` : '—'}</span></tr>
-                           </tr>`;
+                            <td>${canManageComplaints() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${id}" data-collection="complaints" data-type="complaint"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${id}" data-collection="complaints"><i class="bi bi-trash"></i></button>` : '—'}</td>
+                          </tr>`;
             });
             table += `</tbody></table>`;
             recordsDiv.innerHTML = table;
@@ -623,172 +1026,8 @@
         };
         modal.show();
     }
-    
-    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m) { if(m === '&') return '&amp;'; if(m === '<') return '&lt;'; if(m === '>') return '&gt;'; return m;}); }
 
-    // ========== ЭКОНОМИКА ==========
-    async function renderEconomy(sub) {
-        const subTitles = { contracts: "Договоры", businesses: "Бизнесы", taxes: "Налоги", budget: "Бюджет" };
-        const collections = { contracts: "economy_contracts", businesses: "economy_businesses", taxes: "economy_taxes", budget: "economy_budget" };
-        
-        // Для бюджета используем специальный рендер с виджетом
-        if (sub === "budget") {
-            await renderBudgetWithWidget();
-            return;
-        }
-        
-        const colRef = collection(db, collections[sub]);
-        let html = `<div class="subnav">${Object.keys(subTitles).map(s => `<button class="subnav-btn ${currentSub === s ? 'active' : ''}" data-sub="${s}">${subTitles[s]}</button>`).join('')}</div>`;
-        html += `<div class="d-flex justify-content-between align-items-center mb-3"><h5>${subTitles[sub]}</h5>${canEditEconomy() ? '<button class="btn btn-custom btn-sm" id="createNewBtn">+ Добавить</button>' : ''}</div><div id="recordsList">Загрузка...</div>`;
-        document.getElementById("dynamicContent").innerHTML = html;
-        document.querySelectorAll(".subnav-btn").forEach(btn => btn.addEventListener("click", () => { currentSub = btn.dataset.sub; renderEconomy(currentSub); }));
-        onSnapshot(query(colRef, orderBy("createdAt", "desc")), (snapshot) => {
-            const recordsDiv = document.getElementById("recordsList");
-            if (!recordsDiv) return;
-            if (snapshot.empty) { recordsDiv.innerHTML = "<div class='alert alert-light'>Нет записей</div>"; return; }
-            let table = `<table class="table table-custom table-hover"><thead>`;
-            if (sub === "contracts") table += `<th>Название договора</th><th>Контрагент</th><th>Сумма</th><th style="width:90px">Действия</th>`;
-            else if (sub === "businesses") table += `<th>Название бизнеса</th><th>Директор</th><th>ID Карта</th><th>Почта</th><th style="width:90px">Действия</th>`;
-            else if (sub === "taxes") table += `<th>Тип налога</th><th>Категория</th><th>Ставка</th><th style="width:90px">Действия</th>`;
-            table += `</thead><tbody>`;
-            snapshot.forEach(docSnap => {
-                const data = docSnap.data();
-                const id = docSnap.id;
-                table += `<tr data-id="${id}" data-collection="${collections[sub]}" data-type="${sub}">`;
-                if (sub === "contracts") table += `<td><span title="${data.name || ''}">${(data.name || '').substring(0, 40)}${(data.name || '').length > 40 ? '...' : ''}</span></td><td title="${data.partner || ''}">${(data.partner || '').substring(0, 30)}${(data.partner || '').length > 30 ? '...' : ''}</span></td><td>${data.amount || ""} ₽</span></td>`;
-                else if (sub === "businesses") table += `<td><span title="${data.businessName || ''}">${(data.businessName || '').substring(0, 40)}${(data.businessName || '').length > 40 ? '...' : ''}</span></td><td title="${data.director || ''}">${(data.director || '').substring(0, 30)}${(data.director || '').length > 30 ? '...' : ''}</span></td><td><span class="id-card-badge" title="${data.idCard || ''}">${(data.idCard || '').substring(0, 20)}${(data.idCard || '').length > 20 ? '...' : ''}</span></td><td title="${data.emailId || ''}">${(data.emailId || '').substring(0, 25)}${(data.emailId || '').length > 25 ? '...' : ''}</span></td>`;
-                else if (sub === "taxes") table += `<td>${data.taxType || ""}</td><td>${data.category || ""}</td><td>${data.rate || ""}%</td>`;
-                table += `<td>${canEditEconomy() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${id}" data-collection="${collections[sub]}" data-type="${sub}"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${id}" data-collection="${collections[sub]}"><i class="bi bi-trash"></i></button>` : '—'}</td></tr>`;
-            });
-            table += `</tbody></table>`;
-            recordsDiv.innerHTML = table;
-            attachTableEvents("recordsList", collections[sub], canEditEconomy());
-        });
-        if (canEditEconomy()) document.getElementById("createNewBtn")?.addEventListener("click", () => openCreateModal(collections[sub], sub));
-    }
-
-    // Виджет бюджета с общим бюджетом
-    let currentBudgetState = { total: 0, docId: null };
-    
-    async function renderBudgetWithWidget() {
-        const subTitles = { contracts: "Договоры", businesses: "Бизнесы", taxes: "Налоги", budget: "Бюджет" };
-        
-        // Загружаем начальный бюджет
-        const budgetStateSnap = await getDocs(collection(db, "budget_state"));
-        if (!budgetStateSnap.empty) {
-            const doc = budgetStateSnap.docs[0];
-            currentBudgetState.total = doc.data().total || 0;
-            currentBudgetState.docId = doc.id;
-        } else {
-            currentBudgetState.total = 0;
-            currentBudgetState.docId = null;
-        }
-        
-        let html = `
-            <div class="subnav">${Object.keys(subTitles).map(s => `<button class="subnav-btn ${currentSub === s ? 'active' : ''}" data-sub="${s}">${subTitles[s]}</button>`).join('')}</div>
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5>Бюджет</h5>
-                ${canEditEconomy() ? '<button class="btn btn-custom btn-sm" id="createNewBtn">+ Добавить операцию</button>' : ''}
-            </div>
-            <div id="budgetWidgetContainer"></div>
-            <div id="recordsList">Загрузка...</div>
-        `;
-        document.getElementById("dynamicContent").innerHTML = html;
-        
-        document.querySelectorAll(".subnav-btn").forEach(btn => btn.addEventListener("click", () => { currentSub = btn.dataset.sub; renderEconomy(currentSub); }));
-        
-        // Функция обновления виджета
-        const updateWidget = (income, expense) => {
-            const widgetContainer = document.getElementById("budgetWidgetContainer");
-            if (!widgetContainer) return;
-            const calculated = currentBudgetState.total + income - expense;
-            widgetContainer.innerHTML = `
-                <div class="budget-widget">
-                    <div class="d-flex justify-content-between align-items-center flex-wrap">
-                        <div>
-                            <h6 class="mb-1 opacity-75">Общий бюджет Мэрии</h6>
-                            <div class="stat-number" id="totalBudgetDisplay">${calculated.toLocaleString()} ₽</div>
-                            <small class="opacity-75">Доходы: +${income.toLocaleString()} ₽ | Расходы: -${expense.toLocaleString()} ₽</small>
-                            <div><small class="opacity-50">Начальный бюджет: ${currentBudgetState.total.toLocaleString()} ₽</small></div>
-                        </div>
-                        <div>
-                            <button class="btn btn-light btn-sm" id="editInitialBudgetBtn" style="border-radius: 30px;">
-                                <i class="bi bi-pencil"></i> Установить начальный бюджет
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            document.getElementById("editInitialBudgetBtn")?.addEventListener("click", async () => {
-                const newTotal = prompt("Введите начальный бюджет мэрии (в рублях):", currentBudgetState.total);
-                if (newTotal !== null && !isNaN(Number(newTotal))) {
-                    const newTotalNum = Number(newTotal);
-                    if (currentBudgetState.docId) {
-                        await updateDoc(doc(db, "budget_state", currentBudgetState.docId), { total: newTotalNum, updatedAt: new Date() });
-                    } else {
-                        const docRef = await addDoc(collection(db, "budget_state"), { total: newTotalNum, createdAt: new Date() });
-                        currentBudgetState.docId = docRef.id;
-                    }
-                    currentBudgetState.total = newTotalNum;
-                    // Пересчитываем и обновляем
-                    const newIncome = await recalcBudgetTotals();
-                } else if (newTotal !== null) {
-                    alert("Введите корректное число");
-                }
-            });
-        };
-        
-        // Функция пересчета доходов/расходов
-        const recalcBudgetTotals = async () => {
-            const budgetSnap = await getDocs(collection(db, "economy_budget"));
-            let income = 0, expense = 0;
-            budgetSnap.forEach(doc => {
-                const data = doc.data();
-                if (data.type === "income") income += Number(data.amount) || 0;
-                if (data.type === "expense") expense += Number(data.amount) || 0;
-            });
-            updateWidget(income, expense);
-            return { income, expense };
-        };
-        
-        // Подписываемся на изменения бюджета
-        onSnapshot(query(collection(db, "economy_budget"), orderBy("createdAt", "desc")), async (snapshot) => {
-            const recordsDiv = document.getElementById("recordsList");
-            if (!recordsDiv) return;
-            
-            let income = 0, expense = 0;
-            if (snapshot.empty) { 
-                recordsDiv.innerHTML = "<div class='alert alert-light'>Нет операций</div>"; 
-            } else {
-                let table = `<table class="table table-custom table-hover"><thead><th>Тип</th><th>Сумма</th><th>Назначение</th><th>Дата</th><th style="width:90px">Действия</th></thead><tbody>`;
-                snapshot.forEach(docSnap => {
-                    const data = docSnap.data();
-                    const id = docSnap.id;
-                    if (data.type === "income") income += Number(data.amount) || 0;
-                    if (data.type === "expense") expense += Number(data.amount) || 0;
-                    table += `<tr data-id="${id}" data-collection="economy_budget" data-type="budget">
-                                <td><span class="badge ${data.type === 'income' ? 'bg-success' : 'bg-danger'}">${data.type === 'income' ? 'Приход' : 'Расход'}</span></td>
-                                <td>${data.amount || 0} ₽</span></td>
-                                <td><span title="${data.purpose || ''}">${(data.purpose || '').substring(0, 40)}${(data.purpose || '').length > 40 ? '...' : ''}</span></td>
-                                <td>${data.createdAt?.toDate ? new Date(data.createdAt.toDate()).toLocaleDateString() : ""}</span></td>
-                                <td>${canEditEconomy() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${id}" data-collection="economy_budget" data-type="budget"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${id}" data-collection="economy_budget"><i class="bi bi-trash"></i></button>` : '—'}</span></td>
-                              </tr>`;
-                });
-                table += `</tbody>}</div>`;
-                recordsDiv.innerHTML = table;
-                attachTableEvents("recordsList", "economy_budget", canEditEconomy());
-            }
-            updateWidget(income, expense);
-        });
-        
-        if (canEditEconomy()) document.getElementById("createNewBtn")?.addEventListener("click", () => openCreateModal("economy_budget", "budget"));
-        
-        // Первоначальный расчет
-        await recalcBudgetTotals();
-    }
-
-    // ========== ЮРИДИЧЕСКИЙ (с иконкой) ==========
+    // ========== ЮРИДИЧЕСКИЙ ==========
     async function renderLegal(sub) {
         const subTitles = { amnesty: "Амнистия", laws: "Законы", decrees: "Постановления и указы" };
         const collections = { amnesty: "legal_amnesty", laws: "legal_laws", decrees: "legal_decrees" };
@@ -822,9 +1061,9 @@
                     table += `<td><span title="${data.title || ''}">${(data.title || '').substring(0, 40)}${(data.title || '').length > 40 ? '...' : ''}</span>`;
                     table += `<td><span title="${data.description || ''}">${(data.description || '').substring(0, 80)}${(data.description || '').length > 80 ? '...' : ''}</span>`;
                 }
-                table += `<td>${canEditLegal() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${id}" data-collection="${collections[sub]}" data-type="${sub}"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${id}" data-collection="${collections[sub]}"><i class="bi bi-trash"></i></button>` : '—'}</span></tr>`;
+                table += `<td>${canEditLegal() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${id}" data-collection="${collections[sub]}" data-type="${sub}"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${id}" data-collection="${collections[sub]}"><i class="bi bi-trash"></i></button>` : '—'}</span></td>`;
             });
-            table += `</tbody><tr>`;
+            table += `</tbody></table>`;
             recordsDiv.innerHTML = table;
             attachTableEvents("recordsList", collections[sub], canEditLegal());
         });
@@ -855,9 +1094,9 @@
                             <td><span title="${data.fio || ''}">${(data.fio || '').substring(0, 40)}${(data.fio || '').length > 40 ? '...' : ''}</span></td>
                             <td><span class="id-card-badge" title="${data.idCard || ''}">${(data.idCard || '').substring(0, 20)}${(data.idCard || '').length > 20 ? '...' : ''}</span></td>
                             <td><span title="${data.position || ''}">${(data.position || '').substring(0, 30)}${(data.position || '').length > 30 ? '...' : ''}</span></td>
-                            <td><span class="status-badge status-${statusClass}">${statuses[data.status] || "На проверке"}</span></td>
+                            <td><span class="status-badge status-${statusClass}">${statuses[data.status] || "На проверке"}</span><td>
                             <td><button class="btn btn-sm btn-outline-custom editBtn" data-id="${id}" data-collection="${collections[sub]}" data-type="${sub}"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${id}" data-collection="${collections[sub]}"><i class="bi bi-trash"></i></button></td>
-                           </tr>`;
+                          </tr>`;
             });
             table += `</tbody></table>`;
             recordsDiv.innerHTML = table;
@@ -883,10 +1122,10 @@
                 table += `<tr data-id="${id}" data-collection="security_rules" data-type="security">
                             <td><span title="${data.title || ''}">${(data.title || '').substring(0, 50)}${(data.title || '').length > 50 ? '...' : ''}</span></td>
                             <td><span title="${data.description || ''}">${(data.description || '').substring(0, 80)}${(data.description || '').length > 80 ? '...' : ''}</span></td>
-                            <td>${canEditSecurity() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${id}" data-collection="security_rules" data-type="security"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${id}" data-collection="security_rules"><i class="bi bi-trash"></i></button>` : '—'}</span></td>
+                            <td>${canEditSecurity() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${id}" data-collection="security_rules" data-type="security"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${id}" data-collection="security_rules"><i class="bi bi-trash"></i></button>` : '—'}</td>
                           </tr>`;
             });
-            table += `</tbody></table>`;
+            table += `</tbody><tr>`;
             recordsDiv.innerHTML = table;
             attachTableEvents("recordsList", "security_rules", canEditSecurity());
         });
@@ -899,9 +1138,7 @@
         const usersSnap = await getDocs(collection(db, "users"));
         let html = `<div style="overflow-x: auto;">
             <table class="table table-custom users-table">
-                <thead>
-                    <tr><th>Логин</th><th>Отображаемое имя</th><th>Роль</th><th style="text-align: center;">Действие</th></tr>
-                </thead>
+                <thead><tr><th>Логин</th><th>Отображаемое имя</th><th>Роль</th><th style="text-align: center;">Действие</th></tr></thead>
                 <tbody>`;
         for (const userDoc of usersSnap.docs) {
             const data = userDoc.data();
@@ -953,7 +1190,6 @@
         let specificFields = "";
         if (type === "contracts") specificFields = `<input class="form-control mb-2" id="name" placeholder="Название договора"><input class="form-control mb-2" id="partner" placeholder="Контрагент"><input class="form-control mb-2" id="amount" placeholder="Сумма">`;
         else if (type === "businesses") specificFields = `<input class="form-control mb-2" id="businessName" placeholder="Название бизнеса"><input class="form-control mb-2" id="director" placeholder="Директор"><input class="form-control mb-2" id="idCard" placeholder="ID Карта"><input class="form-control mb-2" id="emailId" placeholder="Почта-идентификатор">`;
-        else if (type === "taxes") specificFields = `<input class="form-control mb-2" id="taxType" placeholder="Тип налога"><select class="form-select mb-2" id="category"><option>Федеральный</option><option>Региональный</option><option>Местный</option></select><input class="form-control mb-2" id="rate" placeholder="Ставка %">`;
         else if (type === "budget") specificFields = `<select class="form-select mb-2" id="type"><option value="income">Приход</option><option value="expense">Расход</option></select><input class="form-control mb-2" id="amount" placeholder="Сумма"><input class="form-control mb-2" id="purpose" placeholder="Назначение">`;
         else if (type === "amnesty") specificFields = `<input class="form-control mb-2" id="title" placeholder="Название дела"><select class="form-select mb-2" id="status"><option value="check">Проверка материалов</option><option value="hearing">Ожидает слушания</option><option value="rejected">Отказано</option><option value="approved">Одобрено</option></select>`;
         else if (type === "laws" || type === "decrees") specificFields = `<input class="form-control mb-2" id="title" placeholder="Название">`;
@@ -975,7 +1211,7 @@
         });
         document.getElementById("saveEntryBtn").onclick = async () => {
             let newData = { createdAt: new Date() };
-            const fields = ["name","partner","amount","businessName","director","idCard","emailId","taxType","category","rate","type","purpose","title","status","fio","position","photo","description"];
+            const fields = ["name","partner","amount","businessName","director","idCard","emailId","type","purpose","title","status","fio","position","photo","description"];
             fields.forEach(f => { if(document.getElementById(f)) newData[f] = document.getElementById(f).value; });
             const files = document.getElementById("imageUploads")?.files;
             let urls = [];
@@ -1001,7 +1237,6 @@
         let specificFields = "";
         if (type === "contracts") specificFields = `<input class="form-control mb-2" id="name" value="${escapeHtml(data.name || '')}"><input class="form-control mb-2" id="partner" value="${escapeHtml(data.partner || '')}"><input class="form-control mb-2" id="amount" value="${escapeHtml(data.amount || '')}">`;
         else if (type === "businesses") specificFields = `<input class="form-control mb-2" id="businessName" value="${escapeHtml(data.businessName || '')}"><input class="form-control mb-2" id="director" value="${escapeHtml(data.director || '')}"><input class="form-control mb-2" id="idCard" value="${escapeHtml(data.idCard || '')}"><input class="form-control mb-2" id="emailId" value="${escapeHtml(data.emailId || '')}">`;
-        else if (type === "taxes") specificFields = `<input class="form-control mb-2" id="taxType" value="${escapeHtml(data.taxType || '')}"><select class="form-select mb-2" id="category"><option ${data.category==='Федеральный'?'selected':''}>Федеральный</option><option ${data.category==='Региональный'?'selected':''}>Региональный</option><option ${data.category==='Местный'?'selected':''}>Местный</option></select><input class="form-control mb-2" id="rate" value="${escapeHtml(data.rate || '')}">`;
         else if (type === "budget") specificFields = `<select class="form-select mb-2" id="type"><option ${data.type==='income'?'selected':''} value="income">Приход</option><option ${data.type==='expense'?'selected':''} value="expense">Расход</option></select><input class="form-control mb-2" id="amount" value="${escapeHtml(data.amount || '')}"><input class="form-control mb-2" id="purpose" value="${escapeHtml(data.purpose || '')}">`;
         else if (type === "amnesty") specificFields = `<input class="form-control mb-2" id="title" value="${escapeHtml(data.title || '')}"><select class="form-select mb-2" id="status"><option ${data.status==='check'?'selected':''} value="check">Проверка</option><option ${data.status==='hearing'?'selected':''} value="hearing">Ожидает слушания</option><option ${data.status==='rejected'?'selected':''} value="rejected">Отказано</option><option ${data.status==='approved'?'selected':''} value="approved">Одобрено</option></select>`;
         else if (type === "laws" || type === "decrees") specificFields = `<input class="form-control mb-2" id="title" value="${escapeHtml(data.title || '')}">`;
@@ -1025,7 +1260,7 @@
         });
         document.getElementById("saveEntryBtn").onclick = async () => {
             let updateData = {};
-            const fields = ["name","partner","amount","businessName","director","idCard","emailId","taxType","category","rate","type","purpose","title","status","fio","position","photo","description"];
+            const fields = ["name","partner","amount","businessName","director","idCard","emailId","type","purpose","title","status","fio","position","photo","description"];
             fields.forEach(f => { if(document.getElementById(f)) updateData[f] = document.getElementById(f).value; });
             const files = document.getElementById("imageUploads")?.files;
             let newImages = [...(data.images || [])];
@@ -1038,6 +1273,8 @@
         };
         modal.show();
     }
+
+    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m) { if(m === '&') return '&amp;'; if(m === '<') return '&lt;'; if(m === '>') return '&gt;'; return m;}); }
 
     // ========== НАВИГАЦИЯ ==========
     function buildNavigation() {
