@@ -25,7 +25,7 @@
         .content-card { background: white; border-radius: 24px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); min-height: 500px; }
         .btn-custom { background: #2c7da0; border: none; border-radius: 30px; padding: 6px 20px; font-weight: 500; color: white; transition: 0.2s; }
         .btn-custom:hover { background: #1f5e7c; transform: scale(1.02); }
-        .btn-outline-custom { border-radius: 30px; border: 1px solid #2c7da0; color: #2c7da0; padding: 4px 12px; font-size: 0.8rem; transition: 0.2s; display: inline-flex; align-items: center; gap: 4px; }
+        .btn-outline-custom { border-radius: 30px; border: 1px solid #2c7da0; color: #2c7da0; padding: 4px 12px; font-size: 0.8rem; transition: 0.2s; display: inline-flex; align-items: center; gap: 4px; background: none; }
         .btn-outline-custom:hover { background: #2c7da0; color: white; transform: scale(1.02); }
         .btn-outline-danger { border-radius: 30px; border: 1px solid #dc3545; color: #dc3545; padding: 4px 12px; font-size: 0.8rem; transition: 0.2s; display: inline-flex; align-items: center; gap: 4px; background: none; }
         .btn-outline-danger:hover { background: #dc3545; color: white; transform: scale(1.02); }
@@ -39,7 +39,7 @@
         .subnav-btn.active { background: #e9ecef; color: #2c7da0; }
         .subnav-btn:hover { background: #f8f9fa; color: #2c7da0; transform: translateY(-1px); }
         
-        /* ОСНОВНЫЕ СТИЛИ ТАБЛИЦ - БЕЗ FIXED LAYOUT */
+        /* СТИЛИ ТАБЛИЦ */
         .table-custom { font-size: 0.85rem; width: 100%; }
         .table-custom th { background: #f8f9fa; font-weight: 600; border-bottom: 2px solid #dee2e6; padding: 10px 8px; }
         .table-custom td { vertical-align: middle; padding: 8px; }
@@ -49,9 +49,6 @@
         /* ТОЛЬКО ДЛЯ ТАБЛИЦЫ СОТРУДНИКОВ */
         .users-table { table-layout: fixed; }
         .users-table td:last-child, .users-table th:last-child { width: 120px; text-align: center; }
-        .users-table td:nth-child(1) { width: 20%; }
-        .users-table td:nth-child(2) { width: 30%; }
-        .users-table td:nth-child(3) { width: 30%; }
         
         .id-card-badge { background: #e9ecef; padding: 2px 8px; border-radius: 20px; font-family: monospace; font-size: 0.7rem; display: inline-block; }
         
@@ -90,10 +87,25 @@
         .tooltip-event-item { margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #eee; }
         .tooltip-event-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
         
+        /* ВИДЖЕТ БЮДЖЕТА */
+        .budget-widget {
+            background: linear-gradient(135deg, #2c7da0 0%, #1f5068 100%);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 24px;
+            color: white;
+        }
+        .budget-widget .stat-number {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        
         @media (max-width: 768px) {
             .table-custom { font-size: 0.75rem; }
             .btn-outline-custom, .btn-outline-danger { padding: 2px 6px; font-size: 0.7rem; }
             .status-badge { padding: 2px 6px; font-size: 0.6rem; }
+            .budget-widget .stat-number { font-size: 1.8rem; }
         }
     </style>
 </head>
@@ -325,7 +337,6 @@
             if (!container) return;
             
             container.querySelectorAll('tbody tr').forEach(tr => {
-                // Убираем старые обработчики, чтобы не дублировать
                 const oldClick = tr._clickHandler;
                 const oldEnter = tr._enterHandler;
                 const oldLeave = tr._leaveHandler;
@@ -554,7 +565,7 @@
                             <td><span title="${data.title || ''}">${(data.title || '').substring(0, 50)}${(data.title || '').length > 50 ? '...' : ''}</span></td>
                             <td><span title="${data.author || ''}">${(data.author || '').substring(0, 30)}${(data.author || '').length > 30 ? '...' : ''}</span></td>
                             <td><span class="status-badge status-${statusClass}">${statuses[data.status] || "Новая"}</span></td>
-                            <td>${canManageComplaints() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${id}" data-collection="complaints" data-type="complaint"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${id}" data-collection="complaints"><i class="bi bi-trash"></i></button>` : '—'}</span></td>
+                            <td>${canManageComplaints() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${id}" data-collection="complaints" data-type="complaint"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${id}" data-collection="complaints"><i class="bi bi-trash"></i></button>` : '—'}</span></tr>
                            </tr>`;
             });
             table += `</tbody></table>`;
@@ -619,6 +630,13 @@
     async function renderEconomy(sub) {
         const subTitles = { contracts: "Договоры", businesses: "Бизнесы", taxes: "Налоги", budget: "Бюджет" };
         const collections = { contracts: "economy_contracts", businesses: "economy_businesses", taxes: "economy_taxes", budget: "economy_budget" };
+        
+        // Для бюджета используем специальный рендер с виджетом
+        if (sub === "budget") {
+            await renderBudgetWithWidget();
+            return;
+        }
+        
         const colRef = collection(db, collections[sub]);
         let html = `<div class="subnav">${Object.keys(subTitles).map(s => `<button class="subnav-btn ${currentSub === s ? 'active' : ''}" data-sub="${s}">${subTitles[s]}</button>`).join('')}</div>`;
         html += `<div class="d-flex justify-content-between align-items-center mb-3"><h5>${subTitles[sub]}</h5>${canEditEconomy() ? '<button class="btn btn-custom btn-sm" id="createNewBtn">+ Добавить</button>' : ''}</div><div id="recordsList">Загрузка...</div>`;
@@ -628,12 +646,11 @@
             const recordsDiv = document.getElementById("recordsList");
             if (!recordsDiv) return;
             if (snapshot.empty) { recordsDiv.innerHTML = "<div class='alert alert-light'>Нет записей</div>"; return; }
-            let table = `<table class="table table-custom table-hover"><thead><tr>`;
+            let table = `<table class="table table-custom table-hover"><thead>`;
             if (sub === "contracts") table += `<th>Название договора</th><th>Контрагент</th><th>Сумма</th><th style="width:90px">Действия</th>`;
             else if (sub === "businesses") table += `<th>Название бизнеса</th><th>Директор</th><th>ID Карта</th><th>Почта</th><th style="width:90px">Действия</th>`;
             else if (sub === "taxes") table += `<th>Тип налога</th><th>Категория</th><th>Ставка</th><th style="width:90px">Действия</th>`;
-            else table += `<th>Тип</th><th>Сумма</th><th>Назначение</th><th>Дата</th><th style="width:90px">Действия</th>`;
-            table += `</tr></thead><tbody>`;
+            table += `</thead><tbody>`;
             snapshot.forEach(docSnap => {
                 const data = docSnap.data();
                 const id = docSnap.id;
@@ -641,7 +658,6 @@
                 if (sub === "contracts") table += `<td><span title="${data.name || ''}">${(data.name || '').substring(0, 40)}${(data.name || '').length > 40 ? '...' : ''}</span></td><td title="${data.partner || ''}">${(data.partner || '').substring(0, 30)}${(data.partner || '').length > 30 ? '...' : ''}</span></td><td>${data.amount || ""} ₽</span></td>`;
                 else if (sub === "businesses") table += `<td><span title="${data.businessName || ''}">${(data.businessName || '').substring(0, 40)}${(data.businessName || '').length > 40 ? '...' : ''}</span></td><td title="${data.director || ''}">${(data.director || '').substring(0, 30)}${(data.director || '').length > 30 ? '...' : ''}</span></td><td><span class="id-card-badge" title="${data.idCard || ''}">${(data.idCard || '').substring(0, 20)}${(data.idCard || '').length > 20 ? '...' : ''}</span></td><td title="${data.emailId || ''}">${(data.emailId || '').substring(0, 25)}${(data.emailId || '').length > 25 ? '...' : ''}</span></td>`;
                 else if (sub === "taxes") table += `<td>${data.taxType || ""}</td><td>${data.category || ""}</td><td>${data.rate || ""}%</td>`;
-                else table += `<td><span class="badge ${data.type === 'income' ? 'bg-success' : 'bg-danger'}">${data.type === 'income' ? 'Приход' : 'Расход'}</span></td><td>${data.amount || 0} ₽</span></td><td title="${data.purpose || ''}">${(data.purpose || '').substring(0, 40)}${(data.purpose || '').length > 40 ? '...' : ''}</span></td><td>${data.createdAt?.toDate ? new Date(data.createdAt.toDate()).toLocaleDateString() : ""}</span></td>`;
                 table += `<td>${canEditEconomy() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${id}" data-collection="${collections[sub]}" data-type="${sub}"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${id}" data-collection="${collections[sub]}"><i class="bi bi-trash"></i></button>` : '—'}</td></tr>`;
             });
             table += `</tbody></table>`;
@@ -651,26 +667,147 @@
         if (canEditEconomy()) document.getElementById("createNewBtn")?.addEventListener("click", () => openCreateModal(collections[sub], sub));
     }
 
-    // ========== ЮРИДИЧЕСКИЙ ==========
+    // Виджет бюджета с общим бюджетом
+    let currentBudgetState = { total: 0, docId: null };
+    
+    async function renderBudgetWithWidget() {
+        const subTitles = { contracts: "Договоры", businesses: "Бизнесы", taxes: "Налоги", budget: "Бюджет" };
+        
+        // Загружаем начальный бюджет
+        const budgetStateSnap = await getDocs(collection(db, "budget_state"));
+        if (!budgetStateSnap.empty) {
+            const doc = budgetStateSnap.docs[0];
+            currentBudgetState.total = doc.data().total || 0;
+            currentBudgetState.docId = doc.id;
+        } else {
+            currentBudgetState.total = 0;
+            currentBudgetState.docId = null;
+        }
+        
+        let html = `
+            <div class="subnav">${Object.keys(subTitles).map(s => `<button class="subnav-btn ${currentSub === s ? 'active' : ''}" data-sub="${s}">${subTitles[s]}</button>`).join('')}</div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5>Бюджет</h5>
+                ${canEditEconomy() ? '<button class="btn btn-custom btn-sm" id="createNewBtn">+ Добавить операцию</button>' : ''}
+            </div>
+            <div id="budgetWidgetContainer"></div>
+            <div id="recordsList">Загрузка...</div>
+        `;
+        document.getElementById("dynamicContent").innerHTML = html;
+        
+        document.querySelectorAll(".subnav-btn").forEach(btn => btn.addEventListener("click", () => { currentSub = btn.dataset.sub; renderEconomy(currentSub); }));
+        
+        // Функция обновления виджета
+        const updateWidget = (income, expense) => {
+            const widgetContainer = document.getElementById("budgetWidgetContainer");
+            if (!widgetContainer) return;
+            const calculated = currentBudgetState.total + income - expense;
+            widgetContainer.innerHTML = `
+                <div class="budget-widget">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <div>
+                            <h6 class="mb-1 opacity-75">Общий бюджет Мэрии</h6>
+                            <div class="stat-number" id="totalBudgetDisplay">${calculated.toLocaleString()} ₽</div>
+                            <small class="opacity-75">Доходы: +${income.toLocaleString()} ₽ | Расходы: -${expense.toLocaleString()} ₽</small>
+                            <div><small class="opacity-50">Начальный бюджет: ${currentBudgetState.total.toLocaleString()} ₽</small></div>
+                        </div>
+                        <div>
+                            <button class="btn btn-light btn-sm" id="editInitialBudgetBtn" style="border-radius: 30px;">
+                                <i class="bi bi-pencil"></i> Установить начальный бюджет
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById("editInitialBudgetBtn")?.addEventListener("click", async () => {
+                const newTotal = prompt("Введите начальный бюджет мэрии (в рублях):", currentBudgetState.total);
+                if (newTotal !== null && !isNaN(Number(newTotal))) {
+                    const newTotalNum = Number(newTotal);
+                    if (currentBudgetState.docId) {
+                        await updateDoc(doc(db, "budget_state", currentBudgetState.docId), { total: newTotalNum, updatedAt: new Date() });
+                    } else {
+                        const docRef = await addDoc(collection(db, "budget_state"), { total: newTotalNum, createdAt: new Date() });
+                        currentBudgetState.docId = docRef.id;
+                    }
+                    currentBudgetState.total = newTotalNum;
+                    // Пересчитываем и обновляем
+                    const newIncome = await recalcBudgetTotals();
+                } else if (newTotal !== null) {
+                    alert("Введите корректное число");
+                }
+            });
+        };
+        
+        // Функция пересчета доходов/расходов
+        const recalcBudgetTotals = async () => {
+            const budgetSnap = await getDocs(collection(db, "economy_budget"));
+            let income = 0, expense = 0;
+            budgetSnap.forEach(doc => {
+                const data = doc.data();
+                if (data.type === "income") income += Number(data.amount) || 0;
+                if (data.type === "expense") expense += Number(data.amount) || 0;
+            });
+            updateWidget(income, expense);
+            return { income, expense };
+        };
+        
+        // Подписываемся на изменения бюджета
+        onSnapshot(query(collection(db, "economy_budget"), orderBy("createdAt", "desc")), async (snapshot) => {
+            const recordsDiv = document.getElementById("recordsList");
+            if (!recordsDiv) return;
+            
+            let income = 0, expense = 0;
+            if (snapshot.empty) { 
+                recordsDiv.innerHTML = "<div class='alert alert-light'>Нет операций</div>"; 
+            } else {
+                let table = `<table class="table table-custom table-hover"><thead><th>Тип</th><th>Сумма</th><th>Назначение</th><th>Дата</th><th style="width:90px">Действия</th></thead><tbody>`;
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const id = docSnap.id;
+                    if (data.type === "income") income += Number(data.amount) || 0;
+                    if (data.type === "expense") expense += Number(data.amount) || 0;
+                    table += `<tr data-id="${id}" data-collection="economy_budget" data-type="budget">
+                                <td><span class="badge ${data.type === 'income' ? 'bg-success' : 'bg-danger'}">${data.type === 'income' ? 'Приход' : 'Расход'}</span></td>
+                                <td>${data.amount || 0} ₽</span></td>
+                                <td><span title="${data.purpose || ''}">${(data.purpose || '').substring(0, 40)}${(data.purpose || '').length > 40 ? '...' : ''}</span></td>
+                                <td>${data.createdAt?.toDate ? new Date(data.createdAt.toDate()).toLocaleDateString() : ""}</span></td>
+                                <td>${canEditEconomy() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${id}" data-collection="economy_budget" data-type="budget"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${id}" data-collection="economy_budget"><i class="bi bi-trash"></i></button>` : '—'}</span></td>
+                              </tr>`;
+                });
+                table += `</tbody>}</div>`;
+                recordsDiv.innerHTML = table;
+                attachTableEvents("recordsList", "economy_budget", canEditEconomy());
+            }
+            updateWidget(income, expense);
+        });
+        
+        if (canEditEconomy()) document.getElementById("createNewBtn")?.addEventListener("click", () => openCreateModal("economy_budget", "budget"));
+        
+        // Первоначальный расчет
+        await recalcBudgetTotals();
+    }
+
+    // ========== ЮРИДИЧЕСКИЙ (с иконкой) ==========
     async function renderLegal(sub) {
         const subTitles = { amnesty: "Амнистия", laws: "Законы", decrees: "Постановления и указы" };
         const collections = { amnesty: "legal_amnesty", laws: "legal_laws", decrees: "legal_decrees" };
         const colRef = collection(db, collections[sub]);
         let html = `<div class="subnav">${Object.keys(subTitles).map(s => `<button class="subnav-btn ${currentSub === s ? 'active' : ''}" data-sub="${s}">${subTitles[s]}</button>`).join('')}</div>`;
-        html += `<div class="d-flex justify-content-between align-items-center mb-3"><h5>${subTitles[sub]}</h5>${canEditLegal() ? '<button class="btn btn-custom btn-sm" id="createNewBtn">+ Добавить</button>' : ''}</div><div id="recordsList">Загрузка...</div>`;
+        html += `<div class="d-flex justify-content-between align-items-center mb-3"><h5><i class="bi bi-gavel me-2"></i>${subTitles[sub]}</h5>${canEditLegal() ? '<button class="btn btn-custom btn-sm" id="createNewBtn">+ Добавить</button>' : ''}</div><div id="recordsList">Загрузка...</div>`;
         document.getElementById("dynamicContent").innerHTML = html;
         document.querySelectorAll(".subnav-btn").forEach(btn => btn.addEventListener("click", () => { currentSub = btn.dataset.sub; renderLegal(currentSub); }));
         onSnapshot(query(colRef, orderBy("createdAt", "desc")), (snapshot) => {
             const recordsDiv = document.getElementById("recordsList");
             if (!recordsDiv) return;
             if (snapshot.empty) { recordsDiv.innerHTML = "<div class='alert alert-light'>Нет записей</div>"; return; }
-            let table = `<table class="table table-custom table-hover"><thead><tr>`;
+            let table = `<table class="table table-custom table-hover"><thead>`;
             if (sub === "amnesty") {
                 table += `<th>Название</th><th>Описание</th><th>Статус</th><th style="width:90px">Действия</th>`;
             } else {
                 table += `<th>Название</th><th>Описание</th><th style="width:90px">Действия</th>`;
             }
-            table += `</tr></thead><tbody>`;
+            table += `</thead><tbody>`;
             snapshot.forEach(docSnap => {
                 const data = docSnap.data();
                 const id = docSnap.id;
@@ -685,9 +822,9 @@
                     table += `<td><span title="${data.title || ''}">${(data.title || '').substring(0, 40)}${(data.title || '').length > 40 ? '...' : ''}</span>`;
                     table += `<td><span title="${data.description || ''}">${(data.description || '').substring(0, 80)}${(data.description || '').length > 80 ? '...' : ''}</span>`;
                 }
-                table += `<td>${canEditLegal() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${id}" data-collection="${collections[sub]}" data-type="${sub}"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${id}" data-collection="${collections[sub]}"><i class="bi bi-trash"></i></button>` : '—'}</td></tr>`;
+                table += `<td>${canEditLegal() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${id}" data-collection="${collections[sub]}" data-type="${sub}"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${id}" data-collection="${collections[sub]}"><i class="bi bi-trash"></i></button>` : '—'}</span></tr>`;
             });
-            table += `</tbody></table>`;
+            table += `</tbody><tr>`;
             recordsDiv.innerHTML = table;
             attachTableEvents("recordsList", collections[sub], canEditLegal());
         });
@@ -708,7 +845,7 @@
             const recordsDiv = document.getElementById("recordsList");
             if (!recordsDiv) return;
             if (snapshot.empty) { recordsDiv.innerHTML = "<div class='alert alert-light'>Нет записей</div>"; return; }
-            let table = `<table class="table table-custom table-hover"><thead><tr><th>ФИО</th><th>ID Карта</th><th>Должность</th><th>Статус</th><th style="width:90px">Действия</th></tr></thead><tbody>`;
+            let table = `<table class="table table-custom table-hover"><thead><th>ФИО</th><th>ID Карта</th><th>Должность</th><th>Статус</th><th style="width:90px">Действия</th></thead><tbody>`;
             snapshot.forEach(docSnap => {
                 const data = docSnap.data();
                 const id = docSnap.id;
@@ -733,21 +870,21 @@
     async function renderSecurity() {
         if (!canViewSecurity()) { document.getElementById("dynamicContent").innerHTML = "<div class='alert alert-warning'>Доступ запрещён</div>"; return; }
         const colRef = collection(db, "security_rules");
-        let html = `<div class="d-flex justify-content-between align-items-center mb-3"><h5>Правила и постановления охраны</h5>${canEditSecurity() ? '<button class="btn btn-custom btn-sm" id="createNewBtn">+ Добавить</button>' : ''}</div><div id="recordsList">Загрузка...</div>`;
+        let html = `<div class="d-flex justify-content-between align-items-center mb-3"><h5><i class="bi bi-shield-check me-2"></i>Правила и постановления охраны</h5>${canEditSecurity() ? '<button class="btn btn-custom btn-sm" id="createNewBtn">+ Добавить</button>' : ''}</div><div id="recordsList">Загрузка...</div>`;
         document.getElementById("dynamicContent").innerHTML = html;
         onSnapshot(query(colRef, orderBy("createdAt", "desc")), (snapshot) => {
             const recordsDiv = document.getElementById("recordsList");
             if (!recordsDiv) return;
             if (snapshot.empty) { recordsDiv.innerHTML = "<div class='alert alert-light'>Нет правил</div>"; return; }
-            let table = `<table class="table table-custom table-hover"><thead><tr><th>Название</th><th>Описание</th><th style="width:90px">Действия</th></tr></thead><tbody>`;
+            let table = `<table class="table table-custom table-hover"><thead><th>Название</th><th>Описание</th><th style="width:90px">Действия</th></thead><tbody>`;
             snapshot.forEach(docSnap => {
                 const data = docSnap.data();
                 const id = docSnap.id;
                 table += `<tr data-id="${id}" data-collection="security_rules" data-type="security">
                             <td><span title="${data.title || ''}">${(data.title || '').substring(0, 50)}${(data.title || '').length > 50 ? '...' : ''}</span></td>
                             <td><span title="${data.description || ''}">${(data.description || '').substring(0, 80)}${(data.description || '').length > 80 ? '...' : ''}</span></td>
-                            <td>${canEditSecurity() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${id}" data-collection="security_rules" data-type="security"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${id}" data-collection="security_rules"><i class="bi bi-trash"></i></button>` : '—'}</td>
-                           </tr>`;
+                            <td>${canEditSecurity() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${id}" data-collection="security_rules" data-type="security"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${id}" data-collection="security_rules"><i class="bi bi-trash"></i></button>` : '—'}</span></td>
+                          </tr>`;
             });
             table += `</tbody></table>`;
             recordsDiv.innerHTML = table;
@@ -763,12 +900,7 @@
         let html = `<div style="overflow-x: auto;">
             <table class="table table-custom users-table">
                 <thead>
-                    <tr>
-                        <th>Логин</th>
-                        <th>Отображаемое имя</th>
-                        <th>Роль</th>
-                        <th style="text-align: center;">Действие</th>
-                    </tr>
+                    <tr><th>Логин</th><th>Отображаемое имя</th><th>Роль</th><th style="text-align: center;">Действие</th></tr>
                 </thead>
                 <tbody>`;
         for (const userDoc of usersSnap.docs) {
@@ -784,12 +916,10 @@
                     <option value="assistant" ${data.role === 'assistant' ? 'selected' : ''}>Помощник</option>
                     <option value="deputy_mayor" ${data.role === 'deputy_mayor' ? 'selected' : ''}>Зам.мэра</option>
                 </select></td>
-                <td style="text-align: center; white-space: nowrap;">
-                    <button class="btn btn-sm btn-outline-custom update-user-btn" data-uid="${userDoc.id}"><i class="bi bi-save"></i> Сохранить</button>
-                </td>
+                <td style="text-align: center; white-space: nowrap;"><button class="btn btn-sm btn-outline-custom update-user-btn" data-uid="${userDoc.id}"><i class="bi bi-save"></i> Сохранить</button></span></td>
             </tr>`;
         }
-        html += `</tbody></table></div>`;
+        html += `</tbody>}</div>`;
         return html;
     }
 
