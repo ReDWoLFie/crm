@@ -224,26 +224,32 @@
         await updateDoc(doc(db, "users", uid), { role: newRole });
     }
 
+    // ========== РОЛЕВЫЕ ФУНКЦИИ ==========
     function isDeputyMayor() { return currentUserRole === "deputy_mayor"; }
     function isAssistant() { return currentUserRole === "assistant"; }
     function isEconomist() { return currentUserRole === "economist"; }
     function isLawyer() { return currentUserRole === "lawyer"; }
     function isSecurity() { return currentUserRole === "security"; }
+    
     function canManageUsers() { return isDeputyMayor() || isAssistant(); }
     function canManageComplaints() { return isDeputyMayor() || isAssistant(); }
     function canEditAll() { return isDeputyMayor() || isAssistant(); }
     function canEditEconomy() { return isEconomist() || canEditAll(); }
     function canEditLegal() { return isLawyer() || canEditAll(); }
     function canEditSecurity() { return isSecurity() || canEditAll(); }
-    function canViewLegal() { return true; }
-    function canViewEconomy() { return isEconomist() || canEditAll() || isLawyer() || isSecurity(); }
+    
+    // Охрана НЕ видит экономику и юр.отдел
+    function canViewEconomy() { return isEconomist() || canEditAll() || isLawyer(); }
+    function canViewLegal() { return isLawyer() || canEditAll() || isEconomist(); }
     function canViewSecurity() { return isSecurity() || canEditAll(); }
     
-    // User видит только календарь
-    function canViewEconomyModule() { return !(currentUserRole === "user"); }
-    function canViewLegalModule() { return !(currentUserRole === "user"); }
-    function canViewHRModule() { return isDeputyMayor() || isAssistant(); }
-    function canViewSecurityModule() { return isDeputyMayor() || isAssistant() || isSecurity(); }
+    // Модули доступны не охране
+    function canViewEconomyModule() { return !(currentUserRole === "user") && !(currentUserRole === "security"); }
+    function canViewLegalModule() { return !(currentUserRole === "user") && !(currentUserRole === "security"); }
+    
+    // Кадры видит охрана
+    function canViewHRModule() { return isDeputyMayor() || isAssistant() || isSecurity(); }
+    function canViewSecurityModule() { return isSecurity() || canEditAll(); }
     function canViewComplaintsModule() { return isDeputyMayor() || isAssistant(); }
 
     async function registerWithLogin(login, password) {
@@ -526,7 +532,7 @@
         return true;
     }
 
-    // ========== ОТЧЕТЫ ПО БИЗНЕСАМ (как в амнистии) ==========
+    // ========== ОТЧЕТЫ ПО БИЗНЕСАМ ==========
     let reportModalImages = [];
     
     async function renderBusinessReports() {
@@ -934,7 +940,7 @@
         modal.show();
     }
 
-    // ========== ЭКОНОМИКА ==========
+    // ========== ЭКОНОМИКА (только для экономиста, зам.мэра, помощника, юриста) ==========
     let currentBudgetState = { total: 0, docId: null };
     
     async function renderBudgetWithWidget() {
@@ -1056,6 +1062,11 @@
     }
 
     async function renderEconomy(sub) {
+        if (!canViewEconomy()) {
+            document.getElementById("dynamicContent").innerHTML = "<div class='alert alert-warning'>Доступ запрещён</div>";
+            return;
+        }
+        
         const subTitles = { 
             contracts: "Договоры", 
             businesses: "Бизнесы", 
@@ -1164,9 +1175,9 @@
         }
     }
 
-    // ========== АМНИСТИЯ С ИСТОРИЕЙ ==========
+    // ========== ЮРИДИЧЕСКИЙ ОТДЕЛ (только для юриста, зам.мэра, помощника, экономиста) ==========
     async function renderLegal(sub) {
-        if (!canViewLegalModule()) {
+        if (!canViewLegal()) {
             document.getElementById("dynamicContent").innerHTML = "<div class='alert alert-warning'>Доступ запрещён</div>";
             return;
         }
@@ -1221,7 +1232,7 @@
                     table += `<td><span title="${data.description || ''}">${(data.description || '').substring(0, 80)}${(data.description || '').length > 80 ? '...' : ''}</span>`;
                     table += `<td>${canEditLegal() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${data.id}" data-collection="${collections[sub]}" data-type="${sub}"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${data.id}" data-collection="${collections[sub]}"><i class="bi bi-trash"></i></button>` : '—'}</span>`;
                 }
-                table += `<td>`;
+                table += `</tr>`;
             });
             table += `</tbody>}</div>`;
             recordsDiv.innerHTML = table;
@@ -1648,13 +1659,18 @@
         modal.show();
     }
 
-    // ========== КАДРЫ ==========
+    // ========== КАДРЫ (с историей для Потенциальных) ==========
     async function renderHR(sub) {
-        if (!canViewHRModule()) { document.getElementById("dynamicContent").innerHTML = "<div class='alert alert-warning'>Доступ запрещён</div>"; return; }
+        if (!canViewHRModule()) { 
+            document.getElementById("dynamicContent").innerHTML = "<div class='alert alert-warning'>Доступ запрещён</div>"; 
+            return; 
+        }
         const subTitles = { employed: "Трудоустроенные", candidates: "Потенциальные" };
         const collections = { employed: "hr_employed", candidates: "hr_candidates" };
+        
         let html = `<div class="subnav">${Object.keys(subTitles).map(s => `<button class="subnav-btn ${currentSub === s ? 'active' : ''}" data-sub="${s}">${subTitles[s]}</button>`).join('')}</div>`;
-        html += `<div class="d-flex justify-content-between align-items-center mb-3"><h5>${subTitles[sub]}</h5><button class="btn btn-custom btn-sm" id="createNewBtn">+ Добавить</button></div>`;
+        const canAdd = canViewHRModule();
+        html += `<div class="d-flex justify-content-between align-items-center mb-3"><h5>${subTitles[sub]}</h5>${canAdd ? '<button class="btn btn-custom btn-sm" id="createNewBtn">+ Добавить</button>' : ''}</div>`;
         html += renderSearchBox("Поиск по ФИО, должности или ID карте...");
         html += `<div id="recordsList">Загрузка...</div>`;
         document.getElementById("dynamicContent").innerHTML = html;
@@ -1671,7 +1687,10 @@
             items = searchFilter(items, ['fio', 'position', 'idCard']);
             
             if (items.length === 0) { recordsDiv.innerHTML = "<div class='alert alert-light'>Нет записей, соответствующих поиску</div>"; return; }
-            let table = `<table class="table table-custom table-hover"><thead><th>ФИО</th><th>ID Карта</th><th>Должность</th><th>Статус</th><th style="width:90px">Действия</th></thead><tbody>`;
+            
+            const isCandidates = (sub === "candidates");
+            
+            let table = `<table class="table table-custom table-hover"><thead><th>ФИО</th><th>ID Карта</th><th>Должность</th><th>Статус</th><th style="width:120px">Действия</th></thead><tbody>`;
             items.forEach(data => {
                 const statuses = { "pending": "На проверке", "approved": "Принят", "rejected": "Отказ" };
                 let statusClass = data.status === "approved" ? "approved" : data.status === "rejected" ? "rejected" : "pending";
@@ -1680,15 +1699,175 @@
                             <td><span class="id-card-badge" title="${data.idCard || ''}">${(data.idCard || '').substring(0, 20)}${(data.idCard || '').length > 20 ? '...' : ''}</span></td>
                             <td><span title="${data.position || ''}">${(data.position || '').substring(0, 30)}${(data.position || '').length > 30 ? '...' : ''}</span></td>
                             <td><span class="status-badge status-${statusClass}">${statuses[data.status] || "На проверке"}</span></td>
-                            <td><button class="btn btn-sm btn-outline-custom editBtn" data-id="${data.id}" data-collection="${collections[sub]}" data-type="${sub}"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${data.id}" data-collection="${collections[sub]}"><i class="bi bi-trash"></i></button></td>
-                          </tr>`;
+                            <td><div class="d-flex gap-1 flex-wrap">`;
+                if (canAdd) {
+                    table += `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${data.id}" data-collection="${collections[sub]}" data-type="${sub}"><i class="bi bi-pencil"></i></button>`;
+                    if (isCandidates) {
+                        table += `<button class="btn btn-sm btn-outline-custom add-candidate-history-btn" data-id="${data.id}" data-collection="${collections[sub]}" data-fio="${escapeHtml(data.fio || '')}"><i class="bi bi-plus-circle"></i> Доп.</button>`;
+                    }
+                    table += `<button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${data.id}" data-collection="${collections[sub]}"><i class="bi bi-trash"></i></button>`;
+                } else {
+                    table += `—`;
+                }
+                table += `</div></span>`;
+                table += `</tr>`;
             });
             table += `</tbody></table>`;
             recordsDiv.innerHTML = table;
-            attachTableEvents("recordsList", collections[sub], true);
+            attachTableEvents("recordsList", collections[sub], canAdd);
             attachSearchListener(() => renderHR(currentSub));
+            
+            document.querySelectorAll(".add-candidate-history-btn").forEach(btn => {
+                btn.addEventListener("click", async (e) => {
+                    e.stopPropagation();
+                    const id = btn.dataset.id;
+                    const collectionName = btn.dataset.collection;
+                    const fio = btn.dataset.fio;
+                    const snap = await getDoc(doc(db, collectionName, id));
+                    if (snap.exists()) {
+                        openHRHistoryModal(id, collectionName, snap.data(), fio);
+                    }
+                });
+            });
         });
-        document.getElementById("createNewBtn")?.addEventListener("click", () => openCreateModal(collections[sub], sub));
+        
+        if (canAdd) {
+            document.getElementById("createNewBtn")?.addEventListener("click", () => openCreateModal(collections[sub], sub));
+        }
+    }
+    
+    async function openHRHistoryModal(docId, collectionName, existingData, fio) {
+        const modal = new bootstrap.Modal(document.getElementById("entryModal"));
+        document.getElementById("modalTitle").innerHTML = `<i class="bi bi-pencil-square"></i> Дополнить профиль: ${escapeHtml(fio)}`;
+        
+        let historyHtml = '';
+        if (existingData.history && existingData.history.length > 0) {
+            historyHtml = `
+                <hr>
+                <label><i class="bi bi-clock-history"></i> История изменений:</label>
+                <div class="border rounded p-2 bg-light" style="max-height: 150px; overflow-y: auto; font-size: 0.75rem;">
+                    ${existingData.history.map(h => `
+                        <div class="mb-2 pb-2 border-bottom">
+                            <div class="text-muted small">📅 ${h.date}</div>
+                            <div>${escapeHtml(h.content)}</div>
+                            ${h.images && h.images.length ? `<div class="img-thumb-list mt-1">${h.images.map(img => `<a href="${img}" target="_blank"><img src="${img}" width="40" style="border-radius:4px;"></a>`).join('')}</div>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        let currentImagesForHistory = [];
+        
+        const modalBody = `
+            <div class="mb-3">
+                <label><i class="bi bi-person-badge"></i> Текущая информация</label>
+                <div class="border rounded p-2 bg-light" style="max-height: 150px; overflow-y: auto;">
+                    <strong>ФИО:</strong> ${escapeHtml(existingData.fio || '')}<br>
+                    <strong>ID Карта:</strong> ${escapeHtml(existingData.idCard || '')}<br>
+                    <strong>Должность:</strong> ${escapeHtml(existingData.position || '')}<br>
+                    <strong>Статус:</strong> ${existingData.status === 'approved' ? 'Принят' : existingData.status === 'rejected' ? 'Отказ' : 'На проверке'}<br>
+                    <strong>Описание:</strong> ${escapeHtml(existingData.description || '')}
+                </div>
+            </div>
+            <div class="mb-3">
+                <label><i class="bi bi-plus-circle"></i> Добавить новую запись</label>
+                <textarea id="historyAddition" class="form-control" rows="6" placeholder="Введите новую запись (результаты собеседования, замечания, решения и т.д.)..."></textarea>
+            </div>
+            <div class="mb-3">
+                <label><i class="bi bi-images"></i> Изображения к записи</label>
+                <div class="mb-2">
+                    <input type="file" id="historyImageUploads" multiple class="form-control" accept="image/*">
+                    <small class="text-muted">Можно выбрать несколько файлов одновременно</small>
+                </div>
+                <div class="mb-2">
+                    <input type="text" id="historyImageUrlInput" class="form-control" placeholder="URL изображения">
+                    <button type="button" id="addHistoryImageUrlBtn" class="btn btn-sm btn-outline-custom mt-1"><i class="bi bi-plus-lg"></i> Добавить по ссылке</button>
+                </div>
+                <div id="historyImagePreviewArea" class="img-thumb-list"></div>
+            </div>
+            ${historyHtml}
+            <hr>
+            <div class="alert alert-info small">
+                <i class="bi bi-lightbulb"></i> <strong>Важно:</strong> Новая запись будет добавлена в историю с указанием даты и времени.
+            </div>
+        `;
+        
+        document.getElementById("modalBodyForm").innerHTML = modalBody;
+        
+        const updateHistoryImagePreview = () => {
+            const container = document.getElementById("historyImagePreviewArea");
+            if (!container) return;
+            if (!currentImagesForHistory || currentImagesForHistory.length === 0) {
+                container.innerHTML = '<div class="text-muted small">Нет изображений</div>';
+                return;
+            }
+            container.innerHTML = currentImagesForHistory.map((img, idx) => `
+                <div class="img-thumb-item">
+                    <img src="${img}" alt="Изображение ${idx+1}">
+                    <button class="remove-img-btn" data-index="${idx}" title="Удалить"><i class="bi bi-x"></i></button>
+                </div>
+            `).join('');
+            container.querySelectorAll('.remove-img-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const idx = parseInt(btn.dataset.index);
+                    currentImagesForHistory.splice(idx, 1);
+                    updateHistoryImagePreview();
+                });
+            });
+        };
+        
+        document.getElementById("addHistoryImageUrlBtn")?.addEventListener("click", () => {
+            const url = document.getElementById("historyImageUrlInput").value.trim();
+            if (url) {
+                currentImagesForHistory.push(url);
+                updateHistoryImagePreview();
+                document.getElementById("historyImageUrlInput").value = "";
+            } else {
+                alert("Введите URL");
+            }
+        });
+        
+        document.getElementById("historyImageUploads")?.addEventListener("change", async (e) => {
+            const files = Array.from(e.target.files);
+            if (files.length > 0) {
+                const newUrls = await uploadMultipleImages(files);
+                currentImagesForHistory.push(...newUrls);
+                updateHistoryImagePreview();
+                document.getElementById("historyImageUploads").value = "";
+            }
+        });
+        
+        updateHistoryImagePreview();
+        
+        document.getElementById("saveEntryBtn").onclick = async () => {
+            const newContent = document.getElementById("historyAddition").value.trim();
+            if (!newContent) {
+                alert("Введите текст для добавления");
+                return;
+            }
+            
+            const now = new Date();
+            const dateStr = now.toLocaleString('ru-RU');
+            
+            const historyEntry = {
+                date: dateStr,
+                content: newContent,
+                images: currentImagesForHistory.length ? [...currentImagesForHistory] : []
+            };
+            const history = [...(existingData.history || []), historyEntry];
+            
+            await updateDoc(doc(db, collectionName, docId), {
+                history: history,
+                updatedAt: new Date(),
+                updatedBy: currentUser.uid
+            });
+            
+            modal.hide();
+            renderHR(currentSub);
+        };
+        
+        modal.show();
     }
 
     // ========== ОХРАНА ==========
@@ -1716,7 +1895,7 @@
                             <td><span title="${data.title || ''}">${(data.title || '').substring(0, 50)}${(data.title || '').length > 50 ? '...' : ''}</span></td>
                             <td><span title="${data.description || ''}">${(data.description || '').substring(0, 80)}${(data.description || '').length > 80 ? '...' : ''}</span></td>
                             <td>${canEditSecurity() ? `<button class="btn btn-sm btn-outline-custom editBtn" data-id="${data.id}" data-collection="security_rules" data-type="security"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger deleteBtn" data-id="${data.id}" data-collection="security_rules"><i class="bi bi-trash"></i></button>` : '—'}</td>
-                          </tr>`;
+                          </td>`;
             });
             table += `</tbody></table>`;
             recordsDiv.innerHTML = table;
@@ -1797,8 +1976,8 @@
             { id: "calendarPage", icon: "bi-calendar-week", label: "Календарь", roles: ["user","deputy_mayor","assistant","economist","lawyer","security"] },
             { id: "requests", icon: "bi-envelope-paper", label: "Заявки и постановления", roles: ["deputy_mayor","assistant","economist","lawyer","security"] },
             { id: "economy", icon: "bi-calculator-fill", label: "Экономический отдел", roles: ["deputy_mayor","assistant","economist","lawyer"] },
-            { id: "legal", icon: "bi-gavel", label: "Юридический отдел", roles: ["deputy_mayor","assistant","lawyer","economist","security"] },
-            { id: "hr", icon: "bi-person-badge", label: "Кадры", roles: ["deputy_mayor","assistant"] },
+            { id: "legal", icon: "bi-gavel", label: "Юридический отдел", roles: ["deputy_mayor","assistant","lawyer","economist"] },
+            { id: "hr", icon: "bi-person-badge", label: "Кадры", roles: ["deputy_mayor","assistant","security"] },
             { id: "security", icon: "bi-shield-check", label: "Охрана", roles: ["deputy_mayor","assistant","security"] }
         ];
         if (canViewComplaintsModule()) items.push({ id: "complaints", icon: "bi-exclamation-triangle", label: "Жалобы", roles: ["deputy_mayor","assistant"] });
@@ -1847,7 +2026,7 @@
             authDiv.innerHTML = `<button class="btn btn-outline-primary" id="showAuthBtn">Вход / Регистрация</button>`;
             document.getElementById("showAuthBtn")?.addEventListener("click", () => showAuthModal());
         } else {
-            authDiv.innerHTML = `<span class="badge bg-secondary fs-6 p-2 clickable-name" id="profileBtn">${currentUserDisplayName || currentUser.email?.split('@')[0]} (${currentUserRole === "deputy_mayor" ? "Зам.мэра" : currentUserRole === "assistant" ? "Помощник" : currentUserRole})</span><button class="btn btn-sm btn-danger" id="logoutBtn">Выйти</button>`;
+            authDiv.innerHTML = `<span class="badge bg-secondary fs-6 p-2 clickable-name" id="profileBtn">${currentUserDisplayName || currentUser.email?.split('@')[0]} (${currentUserRole === "deputy_mayor" ? "Зам.мэра" : currentUserRole === "assistant" ? "Помощник" : currentUserRole === "security" ? "Охрана" : currentUserRole})</span><button class="btn btn-sm btn-danger" id="logoutBtn">Выйти</button>`;
             document.getElementById("profileBtn")?.addEventListener("click", () => showProfileModal());
             document.getElementById("logoutBtn")?.addEventListener("click", () => signOut(auth));
         }
